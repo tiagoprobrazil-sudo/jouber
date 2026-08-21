@@ -21,7 +21,13 @@ interface ProductCardProps {
 
 /** The single commercial product card used across Shop and Home. Every
  * instance shares the same aspect ratio, type scale and hover language —
- * the grid, not the card, is what should ever change. */
+ * the grid, not the card, is what should ever change.
+ *
+ * Note: the primary/secondary photo crossfade below is a deliberate
+ * exception to the site's usual `motion-reduce:` convention (client
+ * request) — it always animates, even for visitors whose OS/browser
+ * requests reduced motion, so the photo swap never reads as an abrupt
+ * cut. Every other transition on the site still honors that preference. */
 export function ProductCard({ product, className }: ProductCardProps) {
   const primary = product.images[0];
   const secondary = product.images[1] ?? primary;
@@ -41,7 +47,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           alt={primary?.alt ?? product.title}
           loading="lazy"
           sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
-          className="h-full w-full object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03] group-hover:opacity-0 group-focus-visible:scale-[1.03] group-focus-visible:opacity-0 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+          className="h-full w-full object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03] group-hover:opacity-0 group-focus-visible:scale-[1.03] group-focus-visible:opacity-0"
         />
         <img
           src={secondary?.url}
@@ -49,7 +55,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           aria-hidden="true"
           loading="lazy"
           sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
-          className="absolute inset-0 h-full w-full scale-[1.03] object-cover opacity-0 transition-opacity duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:scale-100 motion-reduce:transition-none"
+          className="absolute inset-0 h-full w-full scale-[1.03] object-cover opacity-0 transition-opacity duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 group-focus-visible:opacity-100"
         />
 
         <span
