@@ -1,19 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ProductImage } from "@/lib/data/types";
 import { cn } from "@/lib/utils/cn";
+
+// Matches the `fade-in` keyframe duration in index.css (--animate-fade-in).
+const CROSSFADE_MS = 900;
 
 export function Gallery({ images }: { images: ProductImage[] }) {
   const [active, setActive] = useState(0);
   const current = images[active] ?? images[0];
 
+  // Swapping an <img>'s src in place never animates -- the opacity value
+  // never changes, so a `transition-opacity` class on it is a no-op. To get
+  // a real crossfade across an arbitrary number of gallery photos, the
+  // previously shown photo stays underneath (`backSrc`) while the newly
+  // selected one is re-mounted on top and fades in over it; once the fade
+  // finishes, the back layer quietly catches up so the next click has a
+  // clean base to fade from again.
+  const [backSrc, setBackSrc] = useState(current?.url);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setBackSrc(current?.url), CROSSFADE_MS);
+    return () => clearTimeout(timer);
+  }, [current?.url]);
+
   return (
     <div>
-      <div className="aspect-[4/5] overflow-hidden bg-stone lg:aspect-[5/6]">
+      <div className="relative aspect-[4/5] overflow-hidden bg-stone lg:aspect-[5/6]">
+        {backSrc && backSrc !== current?.url && (
+          <img src={backSrc} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
+        )}
         <img
+          key={current?.id}
           src={current?.url}
           alt={current?.alt ?? ""}
           sizes="(max-width: 1024px) 100vw, 58vw"
-          className="h-full w-full object-cover transition-opacity duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
+          className="relative h-full w-full object-cover animate-fade-in motion-reduce:animate-none"
           fetchPriority="high"
         />
       </div>
