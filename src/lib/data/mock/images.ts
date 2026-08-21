@@ -86,8 +86,12 @@ export const editorialImages = {
   statueGroup: ourLadyShrineBox1,
   /** A single statue against roses — the artist teaser portrait. */
   artistPortraitPiece: ourLadyPrintII1,
-  /** Close detail of a painted, gilded robe — for the Handcrafted section. */
-  paintedDetail: ourLady10PearlGold2,
+  /** Devotional still life — candle, sacred plaque, crucifix and roses —
+   * for the Handcrafted section's second frame. (Not a macro "paint
+   * detail" shot: the product line's own close-up angles turned out to
+   * be full-object lifestyle photos on a staged tabletop, not texture
+   * detail, so this atmospheric still life reads far better here.) */
+  devotionalStillLife: sacredPlaque2,
 };
 
 /** One representative photograph per collection, used only for the Home

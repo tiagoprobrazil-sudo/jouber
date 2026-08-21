@@ -20,10 +20,10 @@ export function NewsletterSection() {
         <Reveal delay={120} className="col-span-3 col-start-2 mt-14 sm:col-span-4 sm:col-start-5 lg:col-span-3 lg:col-start-9 lg:mt-0">
           <figure>
             <div className="aspect-[3/4] overflow-hidden">
-              <img src={editorialImages.paintedDetail} alt="Close detail of hand-painted and gilded devotional artwork" loading="lazy" className="h-full w-full object-cover object-[60%_center]" />
+              <img src={editorialImages.artistPortraitPiece} alt="A finished devotional statue of Our Lady of Aparecida, set among white roses" loading="lazy" className="h-full w-full object-cover object-[center_30%]" />
             </div>
             <figcaption className="type-caption mt-3 flex justify-between gap-4 text-ink-muted">
-              <span>Atelier detail</span><span aria-hidden="true">Letter / 01</span>
+              <span>Atelier portrait</span><span aria-hidden="true">Letter / 01</span>
             </figcaption>
           </figure>
         </Reveal>

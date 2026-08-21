@@ -34,17 +34,17 @@ export function Handcrafted() {
             </figure>
           </Reveal>
 
-          <Reveal delay={80} className="ml-auto mt-8 w-[62%] sm:mt-10 sm:w-[46%] lg:w-[52%]">
+          <Reveal delay={80} className="ml-auto mt-8 w-[78%] sm:mt-10 sm:w-[58%] lg:w-[64%]">
             <figure>
               <div className="aspect-[4/5] overflow-hidden">
                 <img
-                  src={editorialImages.paintedDetail}
-                  alt="Close detail of hand-painted and gilded devotional artwork"
+                  src={editorialImages.devotionalStillLife}
+                  alt="A devotional still life from the atelier: a Saint Sebastian novena candle, a gilded sacred plaque, a crucifix and roses"
                   loading="lazy"
                   className="h-full w-full object-cover"
                 />
               </div>
-              <figcaption className="type-caption mt-3 text-stone/65">Paint and gilding / Finished detail</figcaption>
+              <figcaption className="type-caption mt-3 text-stone/65">Atelier tokens / For the home altar</figcaption>
             </figure>
           </Reveal>
         </div>
@@ -52,8 +52,10 @@ export function Handcrafted() {
         <div className="col-span-4 mt-10 sm:col-span-6 sm:col-start-2 lg:col-span-5 lg:col-start-8 lg:mt-0">
           <Reveal>
             <SectionEyebrow tone="light" className="mb-6">Process</SectionEyebrow>
-            <EditorialHeading as="h2" size="heading-lg" tone="light" className="max-w-[11ch] max-sm:text-[2.15rem]">
-              Made by Hand. Created with Meaning.
+            <EditorialHeading as="h2" size="heading-lg" tone="light" className="max-sm:text-[2.15rem]">
+              Made by Hand.
+              <br />
+              Created with Meaning.
             </EditorialHeading>
           </Reveal>
 
