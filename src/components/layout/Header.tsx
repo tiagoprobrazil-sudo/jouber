@@ -53,7 +53,7 @@ export function Header() {
         <PageContainer className="editorial-grid items-center">
           <BrandLogo
             tone={overlay ? "light" : "dark"}
-            size="lg"
+            size="header"
             className="col-span-3 transition-colors duration-500 sm:col-span-6 lg:col-span-3"
           />
 
