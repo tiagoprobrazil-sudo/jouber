@@ -41,7 +41,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         className,
       )}
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-stone">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-stone">
         <img
           src={primary?.url}
           alt={primary?.alt ?? product.title}
@@ -62,13 +62,13 @@ export function ProductCard({ product, className }: ProductCardProps) {
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-charcoal/45 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         />
-        <span className="pointer-events-none absolute bottom-3.5 left-3.5 hidden translate-y-2 items-center gap-1.5 font-sans text-[10px] font-medium uppercase tracking-[0.14em] text-ivory opacity-0 transition-[opacity,transform] duration-300 group-hover:translate-y-0 group-hover:opacity-100 lg:inline-flex">
+        <span className="pointer-events-none absolute bottom-3.5 left-3.5 hidden translate-y-2 items-center gap-1.5 rounded-sm font-sans text-[10px] font-medium uppercase tracking-[0.14em] text-ivory opacity-0 transition-[opacity,transform] duration-300 group-hover:translate-y-0 group-hover:opacity-100 lg:inline-flex">
           View Piece
           <ArrowUpRight aria-hidden="true" size={12} strokeWidth={1.5} />
         </span>
 
         {product.compareAtPrice && (
-          <span className="absolute left-3 top-3 bg-olive px-2.5 py-1 font-sans text-[10px] uppercase tracking-wide text-ivory">
+          <span className="absolute left-3 top-3 rounded-sm bg-olive px-2.5 py-1 font-sans text-[10px] uppercase tracking-wide text-ivory">
             Sale
           </span>
         )}
