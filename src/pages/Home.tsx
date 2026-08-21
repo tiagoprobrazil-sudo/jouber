@@ -2,6 +2,7 @@ import { SeoHead } from "@/components/layout/SeoHead";
 import { Hero } from "@/components/home/Hero";
 import { Intro } from "@/components/home/Intro";
 import { FeaturedCollection } from "@/components/home/FeaturedCollection";
+import { CategoryShowcase } from "@/components/home/CategoryShowcase";
 import { EditorialFeature } from "@/components/home/EditorialFeature";
 import { ArtistTeaser } from "@/components/home/ArtistTeaser";
 import { Handcrafted } from "@/components/home/Handcrafted";
@@ -20,6 +21,7 @@ export default function Home() {
       <Hero />
       <Intro />
       <FeaturedCollection />
+      <CategoryShowcase />
       <EditorialFeature />
       <ArtistTeaser />
       <Handcrafted />

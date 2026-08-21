@@ -28,12 +28,12 @@ export function Footer() {
       <div className="container-editorial relative py-12 sm:py-16 lg:py-20">
         <div className="editorial-grid items-start gap-y-10">
           <div className="col-span-4 sm:col-span-8 lg:col-span-5">
-            <div className="flex items-center gap-4">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-ivory/95 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
-                <BrandMark decorative={false} size="md" />
+            <div className="flex items-center gap-5">
+              <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-ivory/95 shadow-[0_0_0_1px_rgba(255,255,255,0.08)]">
+                <BrandMark decorative={false} size="lg" />
               </span>
               <span className="font-serif leading-none text-ivory">
-                <span className="block text-xl">Atelier</span>
+                <span className="block text-2xl">Atelier</span>
                 <span className="mt-1 block font-sans text-[0.7rem] font-medium uppercase tracking-[0.24em] text-stone">
                   Saint Sebastian
                 </span>

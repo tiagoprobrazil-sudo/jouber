@@ -89,3 +89,12 @@ export const editorialImages = {
   /** Close detail of a painted, gilded robe — for the Handcrafted section. */
   paintedDetail: ourLady10PearlGold2,
 };
+
+/** One representative photograph per collection, used only for the Home
+ * category teasers — not tied to a specific product, just the visual
+ * signature of that part of the catalogue. */
+export const categoryTeaserImages = {
+  statues: ourLady11BlueGold1,
+  sacredIcons: archangelCanvas1,
+  devotionalObjects: sacredPlaque1,
+};
