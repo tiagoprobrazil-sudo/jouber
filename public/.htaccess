@@ -1,0 +1,12 @@
+
+# Serve the SPA's index.html for any route under /jouber/ that isn't a
+# real file or directory, so client-side routes (e.g. /jouber/shop,
+# /jouber/product/some-slug) work on direct load and on refresh.
+RewriteEngine On
+RewriteBase /jouber/
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteRule ^ index.html [L]

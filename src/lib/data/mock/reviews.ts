@@ -1,0 +1,58 @@
+import type { Review } from "@/lib/data/types";
+
+export const reviews: Review[] = [
+  {
+    id: "rev-01",
+    author: "Marina C.",
+    location: "São Paulo, Brazil",
+    rating: 5,
+    text: "The Aparecida statue arrived exactly as photographed — the gold trim is painted, not stamped. It sits on my mother's altar now, and it feels like it belongs there.",
+    productSlug: "our-lady-of-aparecida-10-inch-pearl-gold-statue",
+    createdAt: "2026-04-02",
+  },
+  {
+    id: "rev-02",
+    author: "Daniel R.",
+    location: "Newark, NJ",
+    rating: 5,
+    text: "I've bought devotional pieces from a dozen shops online. This is the first one that felt made by a person, not printed by a machine. The weight, the brushwork — all of it.",
+    productSlug: "our-lady-of-aparecida-ivory-gold-statue",
+    createdAt: "2026-05-14",
+  },
+  {
+    id: "rev-03",
+    author: "Helena F.",
+    location: "Lisbon, Portugal",
+    rating: 5,
+    text: "The shrine box was a gift for my daughter's confirmation. Small enough to travel, but it doesn't feel small in meaning. She keeps it on her desk at university.",
+    productSlug: "our-lady-of-aparecida-shrine-box",
+    createdAt: "2026-05-29",
+  },
+  {
+    id: "rev-04",
+    author: "Thiago A.",
+    location: "Belo Horizonte, Brazil",
+    rating: 5,
+    text: "Encomendei o quadro de São Miguel para o consultório do meu pai. Chegou muito bem embalado e a pintura é linda de perto — muito além do que uma foto mostra.",
+    productSlug: "archangel-michael-slaying-the-dragon-canvas",
+    createdAt: "2026-06-03",
+  },
+  {
+    id: "rev-05",
+    author: "Claire M.",
+    location: "Montréal, Canada",
+    rating: 4,
+    text: "Shipping to Canada took a little longer than expected, but the atelier kept me updated the whole time, and the statue itself was worth the wait.",
+    productSlug: "our-lady-of-aparecida-11-inch-pink-statue",
+    createdAt: "2026-06-20",
+  },
+  {
+    id: "rev-06",
+    author: "Rodrigo P.",
+    location: "Miami, FL",
+    rating: 5,
+    text: "There's a stillness to these pieces that's hard to describe until you have one in the room. Ordering my second statue this month.",
+    productSlug: "our-lady-of-aparecida-11-inch-metallic-blue-statue",
+    createdAt: "2026-07-01",
+  },
+];
