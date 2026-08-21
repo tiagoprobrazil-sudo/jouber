@@ -1,4 +1,4 @@
-import { BotanicalEngraving } from "@/components/brand/BotanicalEngraving";
+import { CrownMark } from "@/components/brand/CrownMark";
 import { Reveal } from "@/components/ui/Reveal";
 import { EditorialHeading } from "@/components/ui/EditorialHeading";
 import { PageContainer } from "@/components/ui/PageContainer";
@@ -28,7 +28,7 @@ export function ArtistTeaser() {
           <p className="mt-12 font-serif text-2xl italic text-ink">— Jouber</p>
         </Reveal>
       </PageContainer>
-      <BotanicalEngraving className="absolute -bottom-10 -right-28 hidden w-[34rem] rotate-[7deg] opacity-[0.055] lg:block" />
+      <CrownMark className="absolute -bottom-2 -right-4 hidden w-28 opacity-[0.07] lg:block" />
     </section>
   );
 }

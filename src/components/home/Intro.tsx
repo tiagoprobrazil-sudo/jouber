@@ -1,4 +1,4 @@
-import { BotanicalEngraving } from "@/components/brand/BotanicalEngraving";
+import { CrownMark } from "@/components/brand/CrownMark";
 import { EditorialHeading } from "@/components/ui/EditorialHeading";
 import { PageContainer } from "@/components/ui/PageContainer";
 import { Reveal } from "@/components/ui/Reveal";
@@ -67,7 +67,7 @@ export function Intro() {
         </Reveal>
       </PageContainer>
 
-      <BotanicalEngraving className="absolute -bottom-16 -left-24 z-20 w-[52rem] max-w-none opacity-[0.065] sm:-bottom-24 sm:w-[72rem] lg:-bottom-32 lg:left-[4%] lg:w-[86rem]" />
+      <CrownMark className="absolute -bottom-4 -left-6 z-20 w-32 opacity-[0.08] sm:-bottom-6 sm:w-40 lg:bottom-0 lg:left-[4%] lg:w-48" />
     </section>
   );
 }
