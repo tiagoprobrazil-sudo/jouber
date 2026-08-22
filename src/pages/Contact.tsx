@@ -31,9 +31,9 @@ export default function Contact() {
           </p>
 
           <div className="mt-10 space-y-4">
-            <a href="mailto:hello@ateliersaintsebastian.com" className="flex items-center gap-3 font-sans text-sm text-charcoal hover:text-olive">
+            <a href="mailto:jouber.costa@icloud.com" className="flex items-center gap-3 font-sans text-sm text-charcoal hover:text-olive">
               <Mail size={16} strokeWidth={1.5} />
-              hello@ateliersaintsebastian.com
+              jouber.costa@icloud.com
             </a>
             <a
               href="https://www.instagram.com/ateliersaintsebastian"

@@ -32,8 +32,8 @@ export default function Artist() {
         <PageContainer className="editorial-grid items-start">
           <SectionNumber number={1} className="col-span-1 hidden lg:block lg:row-start-1" />
           <div className="col-span-4 sm:col-span-6 sm:col-start-2 lg:col-span-7 lg:col-start-3 lg:row-start-1">
-            <Reveal><p className="type-heading-md max-w-[29ch] font-serif text-ink">Jouber did not set out to found an atelier. He set out to keep something alive — a way of making devotional objects that he had watched disappear, piece by piece, from the world around him.</p></Reveal>
-            <Reveal delay={80}><p className="type-body mt-8 max-w-[60ch] text-ink-muted">He grew up around altars, not galleries — the small, unglamorous kind kept on a grandmother's dresser, lit by a single candle, dusted every week without being asked. Faith, in that house, was never abstract. It had a shape: the blue of a mantle, the gold at a hem, the particular tilt of a head bowed in prayer. Long before he understood the word "iconography," he understood that these objects were not decoration. They were company.</p></Reveal>
+            <Reveal><p className="type-heading-md max-w-[29ch] font-serif text-ink">My name is Jouber, and Atelier Saint Sebastian was born from a deep connection between faith, art, ancestry, and devotion.</p></Reveal>
+            <Reveal delay={80}><p className="type-body mt-8 max-w-[60ch] text-ink-muted">Since I was young, sacred imagery has always spoken to me — not simply as decoration, but as presence, comfort, memory, and spiritual connection. Through this atelier, I create handcrafted devotional art designed to bring beauty, prayer, protection, and meaning into everyday spaces.</p></Reveal>
           </div>
           <CrownMark className="col-span-1 col-start-12 mt-4 hidden w-16 opacity-20 lg:block lg:row-start-1" />
 
@@ -43,9 +43,9 @@ export default function Artist() {
 
           <SectionNumber number={2} className="col-span-1 col-start-11 mt-28 hidden lg:block lg:row-start-3" />
           <Reveal className="col-span-4 mt-16 sm:col-span-6 sm:col-start-3 sm:mt-20 lg:col-span-6 lg:col-start-6 lg:row-start-3 lg:mt-28">
-            <EditorialHeading as="h2" size="heading-md">A craft learned slowly</EditorialHeading>
-            <p className="type-body mt-6 text-ink-muted">Jouber's training was not formal. It came from watching, failing, repainting, and watching again — from older hands willing to show a base coat, a shading technique, the restraint gold asks for. Ancestry, for him, is not a decorative word. It is method: a set of choices about color and gesture passed down almost entirely through demonstration rather than instruction.</p>
-            <p className="type-body mt-5 text-ink-muted">Atelier Saint Sebastian carries that method forward. The name itself was chosen for a saint remembered for endurance — pierced, and still standing — because that is what the work asks of anyone who does it seriously: patience with a process that cannot be shortened, no matter how long an order queue grows.</p>
+            <EditorialHeading as="h2" size="heading-md">Made with intention</EditorialHeading>
+            <p className="type-body mt-6 text-ink-muted">Each piece is individually handmade and hand-finished with great care, inspired by Catholic tradition, sacred symbolism, and the spiritual richness found across different paths of faith and devotion. From saints and sacred icons to devotional décor, every work is created with intention, respect, and reverence.</p>
+            <p className="type-body mt-5 text-ink-muted">I believe sacred art should feel personal. For this reason, many of my creations can be personalized through colors, finishes, embellishments, and meaningful details — helping transform each piece into something deeply connected to the spiritual journey of the person receiving it.</p>
           </Reveal>
 
           <Reveal delay={80} className="col-span-4 mt-16 sm:col-span-7 sm:col-start-2 sm:mt-20 lg:col-span-7 lg:col-start-5 lg:row-start-4 lg:mt-28">
@@ -55,12 +55,13 @@ export default function Artist() {
           <SectionNumber number={3} className="col-span-1 mt-28 hidden lg:block lg:row-start-5" />
           <Reveal className="col-span-4 mt-16 sm:col-span-6 sm:col-start-2 sm:mt-20 lg:col-span-6 lg:col-start-3 lg:row-start-5 lg:mt-28">
             <EditorialHeading as="h2" size="heading-md">Why the hand still matters</EditorialHeading>
-            <p className="type-body mt-6 text-ink-muted">It would be faster, and cheaper, to cast every piece identically and finish it by machine. Jouber has chosen, deliberately, not to. Every statue that leaves the atelier carries the small variations of a human hand — a brushstroke a fraction wider here, a gold edge a shade warmer there. He considers this the entire point. A devotional object made without variation risks becoming a product. One made by hand stays, in some small way, a person's act of attention.</p>
-            <p className="type-body mt-5 text-ink-muted">That is the promise behind every piece in this collection: not perfection, but presence — art made the way it has always been made, by someone who believes it still matters that it is.</p>
+            <p className="type-body mt-6 text-ink-muted">At Atelier Saint Sebastian, I do not simply create religious décor; I create devotional pieces meant to accompany prayer, reflection, healing, remembrance, and moments of faith inside the home.</p>
+            <p className="type-body mt-5 text-ink-muted">Every piece carries time, craftsmanship, and care. Because they are handmade, no two are ever exactly alike, making each creation unique. I hope that through this work, I can share more than art: a sense of comfort, devotion, beauty, and sacred presence.</p>
           </Reveal>
 
           <Reveal className="col-span-4 mt-20 border-t border-ink/20 pt-8 sm:col-span-6 sm:col-start-3 lg:col-span-5 lg:col-start-7 lg:row-start-6 lg:mt-28">
-            <p className="font-serif text-3xl italic text-ink">Jouber</p>
+            <p className="type-body text-ink-muted">Thank you for supporting handmade sacred art.</p>
+            <p className="mt-6 font-serif text-3xl italic text-ink">Jouber</p>
             <p className="type-eyebrow mt-2 text-ink-muted">Founder &amp; Artist, Atelier Saint Sebastian</p>
             <ButtonLink to="/shop" variant="secondary" size="sm" className="mt-8">Explore the Collection</ButtonLink>
           </Reveal>

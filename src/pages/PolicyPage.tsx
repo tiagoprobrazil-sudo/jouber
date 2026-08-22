@@ -7,22 +7,22 @@ const CONTENT: Record<Topic, { title: string; body: string[] } | { title: string
   shipping: {
     title: "Shipping",
     body: [
-      "Each piece is finished to order and typically ships within 3–7 business days. Delivery times after dispatch vary by destination — usually 5–10 business days within the United States and Brazil, and up to 3 weeks internationally.",
-      "You will receive a tracking link by email once your order leaves the atelier. Because every statue and icon is handmade, exact ship dates during high-demand periods (such as major feast days) may extend slightly.",
+      "Estimated arrival times are noted on each product page and vary by destination. The atelier ships worldwide.",
+      "Buyers are responsible for any customs and import taxes that may apply on international orders — the atelier is not responsible for delays caused by customs processing.",
     ],
   },
   returns: {
     title: "Returns",
     body: [
-      "We want every piece to arrive as intended. If something arrives damaged, write to us within 7 days with photos and we will arrange a replacement or refund.",
-      "Unused, unopened pieces may be returned within 14 days of delivery. Because each work is finished individually, personalized or customized pieces are final sale.",
+      "We offer a 30-day return policy — you have 30 days after receiving your item to request a return. To be eligible, the piece must be unused and in the same condition you received it, in its original packaging, with proof of purchase.",
+      "To start a return, write to us at jouber.costa@icloud.com. Please inspect your order on arrival and contact us right away if a piece arrives damaged or incorrect. Personalized or customized pieces, and sale items, are final sale.",
     ],
   },
   privacy: {
     title: "Privacy",
     body: [
       "Atelier Saint Sebastian collects only the information needed to process orders, respond to inquiries and, with consent, send newsletter updates — name, email, shipping address and order details.",
-      "We do not sell customer information. Data is stored securely and used solely to operate the atelier's shop, journal and customer communications.",
+      "We do not sell customer information. Data is stored securely and used solely to operate the atelier's shop and customer communications.",
     ],
   },
   terms: {
@@ -36,8 +36,8 @@ const CONTENT: Record<Topic, { title: string; body: string[] } | { title: string
     title: "FAQ",
     faq: [
       { q: "Are the pieces really hand-painted?", a: "Yes — every statue, plaque and canvas is finished by hand in the atelier, not machine-printed." },
-      { q: "Can I request a custom finish?", a: "Some pieces support customization — look for the “Customization available” note on the product page, or write to us before ordering." },
-      { q: "Do you ship internationally?", a: "Yes, the atelier ships worldwide. See our Shipping policy for estimated timelines." },
+      { q: "Can I request a custom finish?", a: "Many pieces can be personalized through colors, finishes and embellishments — write to us at jouber.costa@icloud.com before ordering." },
+      { q: "Do you ship internationally?", a: "Yes, the atelier ships worldwide. Buyers are responsible for any customs or import taxes on international orders." },
       { q: "How do I care for my piece?", a: "Dust gently with a dry, soft cloth and keep out of direct, prolonged sunlight to preserve the painted finish." },
     ],
   },
