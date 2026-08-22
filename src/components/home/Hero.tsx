@@ -4,18 +4,34 @@ import { EditorialHeading } from "@/components/ui/EditorialHeading";
 import { PageContainer } from "@/components/ui/PageContainer";
 import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
 import { TextLink } from "@/components/ui/TextLink";
-import { editorialImages } from "@/lib/data/mock/images";
 import frameTop from "@/assets/brand/ornaments/frame-top.webp";
+import heroVideo from "@/assets/videos/hero-devotion.mp4";
+import heroVideoPoster from "@/assets/videos/hero-devotion-poster.webp";
 
 export function Hero() {
   return (
     <section className="relative min-h-[72svh] overflow-hidden bg-charcoal text-ivory sm:min-h-[78svh] lg:min-h-[82svh]">
       <div className="absolute inset-y-0 right-0 w-full overflow-hidden sm:w-[72%] lg:w-[68%]">
+        {/* Autoplaying hero footage of the atelier's hand-painted statues.
+            Visitors who request reduced motion get the video's own first
+            frame as a still image instead, rather than an indefinitely
+            looping animation. */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster={heroVideoPoster}
+          aria-hidden="true"
+          className="h-full w-full scale-[1.025] object-cover object-[center_22%] animate-fade-in motion-reduce:hidden sm:object-center"
+        >
+          <source src={heroVideo} type="video/mp4" />
+        </video>
         <img
-          src={editorialImages.heroStatue}
-          alt="A hand-painted devotional statue of Our Lady, candlelit, from Atelier Saint Sebastian"
-          className="h-full w-full scale-[1.025] object-cover object-[center_22%] animate-reveal motion-reduce:animate-none sm:object-center"
-          fetchPriority="high"
+          src={heroVideoPoster}
+          alt="Hand-painted devotional statues of Our Lady, from Atelier Saint Sebastian"
+          className="hidden h-full w-full object-cover object-[center_22%] motion-reduce:block sm:object-center"
         />
         <div
           className="absolute inset-0 bg-gradient-to-r from-charcoal via-charcoal/30 to-transparent sm:from-charcoal/95 sm:via-charcoal/10 sm:to-transparent"
