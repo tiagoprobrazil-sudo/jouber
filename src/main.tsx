@@ -10,7 +10,7 @@ import "@/index.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <HelmetProvider>
-      <BrowserRouter basename="/jouber">
+      <BrowserRouter>
         <AuthProvider>
           <CartProvider>
             <App />
