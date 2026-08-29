@@ -91,6 +91,12 @@ create policy "order_items: owner or admin read" on order_items
 create policy "order_items: admin write" on order_items
   for all using (is_admin()) with check (is_admin());
 
+-- media -----------------------------------------------------------------
+alter table media enable row level security;
+
+create policy "media: admin read" on media for select using (is_admin());
+create policy "media: admin write" on media for all using (is_admin()) with check (is_admin());
+
 -- newsletter_subscribers ----------------------------------------------------
 alter table newsletter_subscribers enable row level security;
 

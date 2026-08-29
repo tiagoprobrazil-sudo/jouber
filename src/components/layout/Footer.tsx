@@ -76,6 +76,17 @@ export function Footer() {
         <div className="container-editorial flex flex-col gap-2 py-5 font-sans text-[0.6875rem] uppercase tracking-[0.12em] text-stone/55 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Atelier Saint Sebastian</p>
           <p>Made by hand · Kept in faith</p>
+          <p>
+            Powered by{" "}
+            <a
+              href="https://www.tiagobrazil.com.br"
+              target="_blank"
+              rel="noreferrer"
+              className="link-underline text-stone/55 hover:text-ivory"
+            >
+              Tiago Brazil
+            </a>
+          </p>
         </div>
       </div>
     </footer>

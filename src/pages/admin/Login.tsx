@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth, DEMO_ADMIN_CREDENTIALS } from "@/context/AuthContext";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { SeoHead } from "@/components/layout/SeoHead";
 import { Button } from "@/components/ui/Button";
 import { Logo } from "@/components/layout/Logo";
@@ -35,9 +36,13 @@ export default function Login() {
           </div>
           <form onSubmit={handleSubmit} className="border border-stone-dark bg-cream p-8">
             <h1 className="font-serif text-2xl text-charcoal">Admin Sign In</h1>
-            <p className="mt-1 mb-6 font-sans text-xs text-warmgray">
-              Demo credentials: {DEMO_ADMIN_CREDENTIALS.email} / {DEMO_ADMIN_CREDENTIALS.password}
-            </p>
+            {isSupabaseConfigured ? (
+              <p className="mt-1 mb-6 font-sans text-xs text-warmgray">Sign in with your admin account.</p>
+            ) : (
+              <p className="mt-1 mb-6 font-sans text-xs text-warmgray">
+                Demo credentials: {DEMO_ADMIN_CREDENTIALS.email} / {DEMO_ADMIN_CREDENTIALS.password}
+              </p>
+            )}
 
             <div className="space-y-4">
               <div>

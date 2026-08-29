@@ -72,6 +72,13 @@ create table products (
   material text,
   finish text,
   weight text,
+  -- Structured shipping parcel data used to request live Shippo rates at
+  -- checkout (see src/lib/shipping). Distinct from the freeform
+  -- weight/dimensions display strings above.
+  shipping_weight_oz numeric(10, 2),
+  shipping_length_in numeric(10, 2),
+  shipping_width_in numeric(10, 2),
+  shipping_height_in numeric(10, 2),
   sku text unique,
   stock integer not null default 0,
   active boolean not null default true,
@@ -150,6 +157,19 @@ create table order_items (
   variant text,
   quantity integer not null default 1,
   unit_price numeric(10, 2) not null
+);
+
+-- ---------------------------------------------------------------------------
+-- Media library (metadata only — actual bytes live in Storage buckets,
+-- see 0003_storage.sql; this table tracks what's been uploaded and where
+-- it's used so the admin Media screen can list/filter it).
+-- ---------------------------------------------------------------------------
+create table media (
+  id uuid primary key default gen_random_uuid(),
+  url text not null,
+  name text not null,
+  used_in text not null default 'unassigned' check (used_in in ('posts', 'products', 'unassigned')),
+  created_at timestamptz not null default now()
 );
 
 -- ---------------------------------------------------------------------------
