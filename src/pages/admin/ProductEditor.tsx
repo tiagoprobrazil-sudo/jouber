@@ -199,6 +199,42 @@ export default function ProductEditor() {
           <TextField label="Finish" value={form.finish ?? ""} onChange={(v) => update("finish", v)} />
         </div>
 
+        <div>
+          <p className="mb-2 font-sans text-xs uppercase tracking-wide text-warmgray">
+            Shipping parcel <span className="normal-case text-warmgray/70">— used to quote live carrier rates at checkout</span>
+          </p>
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+            <TextField
+              label="Weight (oz)"
+              type="number"
+              value={form.shippingWeightOz ?? ""}
+              onChange={(v) => update("shippingWeightOz", v ? Number(v) : undefined)}
+            />
+            <TextField
+              label="Length (in)"
+              type="number"
+              value={form.shippingLengthIn ?? ""}
+              onChange={(v) => update("shippingLengthIn", v ? Number(v) : undefined)}
+            />
+            <TextField
+              label="Width (in)"
+              type="number"
+              value={form.shippingWidthIn ?? ""}
+              onChange={(v) => update("shippingWidthIn", v ? Number(v) : undefined)}
+            />
+            <TextField
+              label="Height (in)"
+              type="number"
+              value={form.shippingHeightIn ?? ""}
+              onChange={(v) => update("shippingHeightIn", v ? Number(v) : undefined)}
+            />
+          </div>
+          <p className="mt-2 font-sans text-xs text-warmgray">
+            Left blank, checkout uses a generic fallback box so shipping quotes still work — fill this in
+            for an accurate rate on this product.
+          </p>
+        </div>
+
         <ProductImagesField images={form.images} onChange={(images) => update("images", images)} />
 
         <div className="flex flex-wrap gap-8 border-t border-stone-dark pt-6">

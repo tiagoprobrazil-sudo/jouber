@@ -51,6 +51,10 @@ export default function ProductDetail() {
         price: product.price,
         variant: variant?.name,
         quantity,
+        shippingWeightOz: product.shippingWeightOz,
+        shippingLengthIn: product.shippingLengthIn,
+        shippingWidthIn: product.shippingWidthIn,
+        shippingHeightIn: product.shippingHeightIn,
       },
       { openDrawer: true },
     );

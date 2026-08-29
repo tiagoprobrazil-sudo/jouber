@@ -8,6 +8,11 @@ export interface CartLine {
   price: number;
   variant?: string;
   quantity: number;
+  /** Snapshot of the product's shipping parcel data at add-to-cart time (see lib/shipping). */
+  shippingWeightOz?: number;
+  shippingLengthIn?: number;
+  shippingWidthIn?: number;
+  shippingHeightIn?: number;
 }
 
 interface CartState {

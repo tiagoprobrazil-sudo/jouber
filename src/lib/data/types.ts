@@ -57,6 +57,16 @@ export interface Product {
   material?: string;
   finish?: string;
   weight?: string;
+  /**
+   * Structured shipping parcel data (distinct from the freeform
+   * `weight`/`dimensions` display strings above) used to request live
+   * carrier rates from Shippo — see src/lib/shipping. When any of these
+   * is missing, checkout falls back to DEFAULT_PARCEL for that line.
+   */
+  shippingWeightOz?: number;
+  shippingLengthIn?: number;
+  shippingWidthIn?: number;
+  shippingHeightIn?: number;
   sku: string;
   stock: number;
   active: boolean;

@@ -97,3 +97,39 @@ gateway) means adding a server-side function (Supabase Edge Function is
 a good fit) to create a PaymentIntent/Checkout Session, then writing
 the resulting order into the `orders`/`order_items` tables from that
 same function once payment succeeds — never from the client alone.
+
+## 9. Shipping rates (Shippo)
+
+Live carrier rates at checkout are quoted through
+[Shippo](https://goshippo.com/products/api) from a Supabase Edge
+Function (`supabase/functions/shipping-rates`) so the Shippo API key
+never reaches the browser. The client (`src/lib/shipping/shippo.ts`)
+calls it via `supabase.functions.invoke("shipping-rates", ...)`; if
+Supabase isn't configured, or the call fails for any reason, checkout
+falls back to a flat estimate so it never hard-blocks.
+
+1. Create a free account at [goshippo.com](https://goshippo.com) and
+   grab a **test** token from Settings → API (starts `shippo_test_`).
+   Go live later with a **live** token (`shippo_live_`) once carrier
+   accounts are connected in the Shippo dashboard — Shippo includes
+   discounted USPS out of the box; UPS/FedEx/DHL need their own
+   accounts connected there.
+2. Install the [Supabase CLI](https://supabase.com/docs/guides/cli) and
+   link it to this project: `supabase link --project-ref <your-project-ref>`.
+3. Deploy the function: `supabase functions deploy shipping-rates`.
+4. Set its secrets (never as `VITE_...` — those ship to the browser):
+   ```
+   supabase secrets set SHIPPO_API_KEY=shippo_test_xxxxxxxx
+   supabase secrets set SHIPPO_ADDRESS_FROM='{"name":"Atelier Saint Sebastian","street1":"123 Main St","city":"City","state":"ST","zip":"00000","country":"US","phone":"+15555555555","email":"jouber@ateliersaintsebastian.com"}'
+   ```
+   `SHIPPO_ADDRESS_FROM` is the atelier's real ship-from address — Shippo
+   validates it and needs it to be accurate to quote rates.
+5. Test from `/checkout`: fill in a shipping address and click "Get
+   shipping rates". With a `shippo_test_` token, Shippo returns
+   realistic-looking test rates (no real carrier is called and nothing
+   is charged) — switch to a `shippo_live_` token when ready to go live.
+6. Per-product parcel data (weight/dimensions used to build the Shippo
+   parcel) is set in the admin Product editor under "Shipping parcel".
+   Products left blank use a generic fallback box
+   (`DEFAULT_PARCEL` in `src/lib/shipping/types.ts`) so rates still work,
+   but accuracy improves once real weights/dimensions are filled in.
