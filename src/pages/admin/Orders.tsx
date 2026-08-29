@@ -4,7 +4,7 @@ import { getOrders } from "@/lib/data/repository";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 const STATUS_STYLES: Record<Order["status"], string> = {
-  pending: "bg-stone text-warmgray-dark",
+  pending: "bg-admin-border-soft text-admin-ink-muted",
   processing: "bg-gold-soft/20 text-gold",
   fulfilled: "bg-olive/15 text-olive-dark",
   cancelled: "bg-red-100 text-red-700",
@@ -20,14 +20,14 @@ export default function Orders() {
 
   return (
     <div>
-      <h1 className="font-serif text-3xl text-charcoal">Orders</h1>
-      <p className="mt-1 font-sans text-sm text-warmgray">
+      <h1 className="font-serif text-3xl text-admin-ink">Orders</h1>
+      <p className="mt-1 font-sans text-sm text-admin-muted">
         Illustrative data — connect a payment gateway and Supabase orders table to receive real orders here.
       </p>
 
-      <div className="mt-8 overflow-x-auto border border-stone-dark bg-cream">
+      <div className="mt-8 overflow-x-auto border border-admin-border bg-admin-surface">
         <table className="w-full min-w-[640px] text-left font-sans text-sm">
-          <thead className="border-b border-stone-dark text-xs uppercase tracking-wide text-warmgray">
+          <thead className="border-b border-admin-border text-xs uppercase tracking-wide text-admin-muted">
             <tr>
               <th className="px-5 py-3 font-medium">Order</th>
               <th className="px-5 py-3 font-medium">Customer</th>
@@ -36,16 +36,16 @@ export default function Orders() {
               <th className="px-5 py-3 font-medium text-right">Total</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone">
+          <tbody className="divide-y divide-admin-border-soft">
             {orders?.map((o) => (
               <tr key={o.id}>
-                <td className="px-5 py-3.5 text-charcoal">#{o.id}</td>
-                <td className="px-5 py-3.5 text-warmgray-dark">{o.customerEmail}</td>
+                <td className="px-5 py-3.5 text-admin-ink">#{o.id}</td>
+                <td className="px-5 py-3.5 text-admin-ink-muted">{o.customerEmail}</td>
                 <td className="px-5 py-3.5">
                   <span className={`px-2.5 py-1 text-xs uppercase tracking-wide ${STATUS_STYLES[o.status]}`}>{o.status}</span>
                 </td>
-                <td className="px-5 py-3.5 text-warmgray-dark">{formatDate(o.createdAt)}</td>
-                <td className="px-5 py-3.5 text-right text-charcoal">{formatPrice(o.subtotal)}</td>
+                <td className="px-5 py-3.5 text-admin-ink-muted">{formatDate(o.createdAt)}</td>
+                <td className="px-5 py-3.5 text-right text-admin-ink">{formatPrice(o.subtotal)}</td>
               </tr>
             ))}
           </tbody>

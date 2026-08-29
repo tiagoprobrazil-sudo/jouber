@@ -37,19 +37,19 @@ function Field({
 }) {
   return (
     <div className={className}>
-      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">{label}</label>
+      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">{label}</label>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-stone-dark bg-cream px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+        className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
       />
     </div>
   );
 }
 
 function StatusBadge({ ok, label }: { ok: boolean | null; label: string }) {
-  if (ok === null) return <span className="flex items-center gap-1.5 text-warmgray"><AlertCircle size={14} strokeWidth={1.5} /> {label}</span>;
+  if (ok === null) return <span className="flex items-center gap-1.5 text-admin-muted"><AlertCircle size={14} strokeWidth={1.5} /> {label}</span>;
   return ok ? (
     <span className="flex items-center gap-1.5 text-olive-dark"><CheckCircle2 size={14} strokeWidth={1.5} /> {label}</span>
   ) : (
@@ -91,24 +91,24 @@ export default function Settings() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="font-serif text-3xl text-charcoal">Settings</h1>
+      <h1 className="font-serif text-3xl text-admin-ink">Settings</h1>
 
       <div className="mt-8 space-y-8">
-        <div className="border border-stone-dark bg-cream p-6">
+        <div className="border border-admin-border bg-admin-surface p-6">
           <h2 className="font-serif text-lg">Account</h2>
-          <p className="mt-2 font-sans text-sm text-warmgray-dark">Signed in as {adminEmail}</p>
+          <p className="mt-2 font-sans text-sm text-admin-ink-muted">Signed in as {adminEmail}</p>
         </div>
 
-        <div className="border border-stone-dark bg-cream p-6">
+        <div className="border border-admin-border bg-admin-surface p-6">
           <h2 className="font-serif text-lg">Data source</h2>
-          <p className="mt-2 font-sans text-sm text-warmgray-dark">
+          <p className="mt-2 font-sans text-sm text-admin-ink-muted">
             {isSupabaseConfigured
               ? "Connected to a Supabase project."
               : "Running on local mock data (browser storage). Connect a Supabase project by setting VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY — see /supabase/README.md for the schema and setup steps."}
           </p>
         </div>
 
-        <div className="border border-stone-dark bg-cream p-6">
+        <div className="border border-admin-border bg-admin-surface p-6">
           <div className="flex items-center justify-between">
             <h2 className="font-serif text-lg">Store</h2>
             <Button size="sm" disabled={savingProfile} onClick={saveProfile}>
@@ -121,16 +121,16 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="border border-stone-dark bg-cream p-6">
+        <div className="border border-admin-border bg-admin-surface p-6">
           <h2 className="font-serif text-lg">Shipping — Shippo</h2>
           <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
             <StatusBadge ok={shippoStatus === undefined ? null : Boolean(shippoStatus?.ok)} label={shippoStatus?.ok ? "Connected" : "Not connected"} />
-            <span className="text-warmgray">
-              Mode: <span className="text-charcoal">{shippoStatus?.keyMode ?? "unknown"}</span>
+            <span className="text-admin-muted">
+              Mode: <span className="text-admin-ink">{shippoStatus?.keyMode ?? "unknown"}</span>
             </span>
           </div>
           {shippoStatus?.keyMode === "test" && (
-            <p className="mt-2 font-sans text-xs text-warmgray">
+            <p className="mt-2 font-sans text-xs text-admin-muted">
               Using a Shippo test token — quotes are realistic but no real carrier is called and nothing is
               charged. Switch to a shippo_live_ token (via <code>supabase secrets set SHIPPO_API_KEY=...</code>)
               and connect carrier accounts in the Shippo dashboard to go live.
@@ -138,7 +138,7 @@ export default function Settings() {
           )}
 
           <div className="mt-6 flex items-center justify-between">
-            <p className="font-sans text-xs uppercase tracking-wide text-warmgray">Ship-from address</p>
+            <p className="font-sans text-xs uppercase tracking-wide text-admin-muted">Ship-from address</p>
             <Button size="sm" disabled={savingAddress} onClick={saveAddress}>
               {savingAddress ? "Saving…" : "Save"}
             </Button>
@@ -155,17 +155,17 @@ export default function Settings() {
           </div>
         </div>
 
-        <div className="border border-stone-dark bg-cream p-6">
+        <div className="border border-admin-border bg-admin-surface p-6">
           <h2 className="font-serif text-lg">Payments — Stripe</h2>
           <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
             <StatusBadge ok={stripeMode !== null} label={stripeMode ? "Key saved" : "Not connected"} />
             {stripeMode && (
-              <span className="text-warmgray">
-                Mode: <span className="text-charcoal">{stripeMode}</span>
+              <span className="text-admin-muted">
+                Mode: <span className="text-admin-ink">{stripeMode}</span>
               </span>
             )}
           </div>
-          <p className="mt-2 font-sans text-xs text-warmgray">
+          <p className="mt-2 font-sans text-xs text-admin-muted">
             {stripeMode
               ? "Checkout isn't wired up to Stripe yet — the keys are saved and ready for when that's built."
               : "No Stripe keys saved yet."}

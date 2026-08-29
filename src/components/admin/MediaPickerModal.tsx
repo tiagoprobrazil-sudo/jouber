@@ -34,16 +34,16 @@ export function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPickerModal
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-charcoal/50 p-4" role="dialog" aria-modal="true" aria-label="Select an image">
-      <div className="flex max-h-[80vh] w-full max-w-3xl flex-col bg-cream">
-        <div className="flex items-center justify-between border-b border-stone-dark px-6 py-4">
+      <div className="flex max-h-[80vh] w-full max-w-3xl flex-col bg-admin-surface">
+        <div className="flex items-center justify-between border-b border-admin-border px-6 py-4">
           <h2 className="font-serif text-lg">Media Library</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="p-1 text-charcoal">
+          <button type="button" onClick={onClose} aria-label="Close" className="p-1 text-admin-ink">
             <X size={18} strokeWidth={1.5} />
           </button>
         </div>
 
-        <div className="flex items-center justify-between border-b border-stone-dark px-6 py-3">
-          <p className="font-sans text-xs text-warmgray">{items.length} images</p>
+        <div className="flex items-center justify-between border-b border-admin-border px-6 py-3">
+          <p className="font-sans text-xs text-admin-muted">{items.length} images</p>
           <label className="flex cursor-pointer items-center gap-2 font-sans text-xs uppercase tracking-wide text-olive">
             <Upload size={13} strokeWidth={1.5} />
             {uploading ? "Uploading…" : "Upload new"}
@@ -57,7 +57,7 @@ export function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPickerModal
               key={item.id}
               type="button"
               onClick={() => onSelect(item.url)}
-              className="aspect-square overflow-hidden bg-stone transition-opacity hover:opacity-80"
+              className="aspect-square overflow-hidden bg-admin-border-soft transition-opacity hover:opacity-80"
               aria-label={`Use ${item.name}`}
             >
               <img src={item.url} alt={item.name} className="h-full w-full object-cover" loading="lazy" />

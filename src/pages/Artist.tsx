@@ -7,8 +7,11 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
 import { SectionNumber } from "@/components/ui/SectionNumber";
 import { editorialImages } from "@/lib/data/mock/images";
+import { useSiteContent } from "@/lib/data/siteContent";
 
 export default function Artist() {
+  const content = useSiteContent("artist");
+
   return (
     <>
       <SeoHead title="The Artist" description="Meet Jouber, the artist behind Atelier Saint Sebastian — a story of faith, ancestry, memory and the work of the hands." path="/artist" />
@@ -32,8 +35,8 @@ export default function Artist() {
         <PageContainer className="editorial-grid items-start">
           <SectionNumber number={1} className="col-span-1 hidden lg:block lg:row-start-1" />
           <div className="col-span-4 sm:col-span-6 sm:col-start-2 lg:col-span-7 lg:col-start-3 lg:row-start-1">
-            <Reveal><p className="type-heading-md max-w-[29ch] font-serif text-ink">My name is Jouber, and Atelier Saint Sebastian was born from a deep connection between faith, art, ancestry, and devotion.</p></Reveal>
-            <Reveal delay={80}><p className="type-body mt-8 max-w-[60ch] text-ink-muted">Since I was young, sacred imagery has always spoken to me — not simply as decoration, but as presence, comfort, memory, and spiritual connection. Through this atelier, I create handcrafted devotional art designed to bring beauty, prayer, protection, and meaning into everyday spaces.</p></Reveal>
+            <Reveal><p className="type-heading-md max-w-[29ch] font-serif text-ink">{content.leadParagraph}</p></Reveal>
+            <Reveal delay={80}><p className="type-body mt-8 max-w-[60ch] text-ink-muted">{content.introParagraph}</p></Reveal>
           </div>
           <CrownMark className="col-span-1 col-start-12 mt-4 hidden w-16 opacity-20 lg:block lg:row-start-1" />
 
@@ -43,9 +46,9 @@ export default function Artist() {
 
           <SectionNumber number={2} className="col-span-1 col-start-11 mt-28 hidden lg:block lg:row-start-3" />
           <Reveal className="col-span-4 mt-16 sm:col-span-6 sm:col-start-3 sm:mt-20 lg:col-span-6 lg:col-start-6 lg:row-start-3 lg:mt-28">
-            <EditorialHeading as="h2" size="heading-md">Made with intention</EditorialHeading>
-            <p className="type-body mt-6 text-ink-muted">Each piece is individually handmade and hand-finished with great care, inspired by Catholic tradition, sacred symbolism, and the spiritual richness found across different paths of faith and devotion. From saints and sacred icons to devotional décor, every work is created with intention, respect, and reverence.</p>
-            <p className="type-body mt-5 text-ink-muted">I believe sacred art should feel personal. For this reason, many of my creations can be personalized through colors, finishes, embellishments, and meaningful details — helping transform each piece into something deeply connected to the spiritual journey of the person receiving it.</p>
+            <EditorialHeading as="h2" size="heading-md">{content.section2Heading}</EditorialHeading>
+            <p className="type-body mt-6 text-ink-muted">{content.section2Body1}</p>
+            <p className="type-body mt-5 text-ink-muted">{content.section2Body2}</p>
           </Reveal>
 
           <Reveal delay={80} className="col-span-4 mt-16 sm:col-span-7 sm:col-start-2 sm:mt-20 lg:col-span-7 lg:col-start-5 lg:row-start-4 lg:mt-28">
@@ -54,15 +57,15 @@ export default function Artist() {
 
           <SectionNumber number={3} className="col-span-1 mt-28 hidden lg:block lg:row-start-5" />
           <Reveal className="col-span-4 mt-16 sm:col-span-6 sm:col-start-2 sm:mt-20 lg:col-span-6 lg:col-start-3 lg:row-start-5 lg:mt-28">
-            <EditorialHeading as="h2" size="heading-md">Why the hand still matters</EditorialHeading>
-            <p className="type-body mt-6 text-ink-muted">At Atelier Saint Sebastian, I do not simply create religious décor; I create devotional pieces meant to accompany prayer, reflection, healing, remembrance, and moments of faith inside the home.</p>
-            <p className="type-body mt-5 text-ink-muted">Every piece carries time, craftsmanship, and care. Because they are handmade, no two are ever exactly alike, making each creation unique. I hope that through this work, I can share more than art: a sense of comfort, devotion, beauty, and sacred presence.</p>
+            <EditorialHeading as="h2" size="heading-md">{content.section3Heading}</EditorialHeading>
+            <p className="type-body mt-6 text-ink-muted">{content.section3Body1}</p>
+            <p className="type-body mt-5 text-ink-muted">{content.section3Body2}</p>
           </Reveal>
 
           <Reveal className="col-span-4 mt-20 border-t border-ink/20 pt-8 sm:col-span-6 sm:col-start-3 lg:col-span-5 lg:col-start-7 lg:row-start-6 lg:mt-28">
-            <p className="type-body text-ink-muted">Thank you for supporting handmade sacred art.</p>
-            <p className="mt-6 font-serif text-3xl italic text-ink">Jouber</p>
-            <p className="type-eyebrow mt-2 text-ink-muted">Founder &amp; Artist, Atelier Saint Sebastian</p>
+            <p className="type-body text-ink-muted">{content.closingLine}</p>
+            <p className="mt-6 font-serif text-3xl italic text-ink">{content.signatureName}</p>
+            <p className="type-eyebrow mt-2 text-ink-muted">{content.signatureTitle}</p>
             <ButtonLink to="/shop" variant="secondary" size="sm" className="mt-8">Explore the Collection</ButtonLink>
           </Reveal>
         </PageContainer>

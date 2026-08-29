@@ -90,7 +90,8 @@ component. This section makes a defined subset of that copy admin-editable.
 
 ### 1.1 Inventory and schema
 
-- Status: `[ ]`
+- Status: `[x]`
+- Implementation notes (2026-08-29): user chose "all" of the candidates — Hero, Intro, Editorial Feature quote, Process steps, Artist bio, Newsletter, Footer, and all 5 policy pages. New `site_content` table (public read, admin write — `0006_site_content.sql`) holding one JSON blob per key. Defaults (matching the original hardcoded copy) and TypeScript shapes live in `src/lib/data/siteContent.ts` as `SITE_CONTENT_DEFAULTS`, doubling as both the public fallback and the admin form's pre-fill.
 - Deliverable: a short list (agree with the user) of which text blocks
   become editable — likely Hero (eyebrow/headline/subhead/CTA label),
   Intro paragraph, EditorialFeature quote, Artist bio paragraphs, the 4
@@ -103,7 +104,8 @@ component. This section makes a defined subset of that copy admin-editable.
 
 ### 1.2 Admin UI
 
-- Status: `[ ]`
+- Status: `[x]`
+- Implementation notes (2026-08-29): new `/admin/content` (`src/pages/admin/Content.tsx`), one panel per content key, each saving independently via `getSiteContent`/`updateSiteContent`. Added to `AdminLayout`'s nav.
 - Deliverable: `/admin/content`, grouped by page/section, one field per
   text block (plain text or the existing Tiptap `RichTextEditor` for the
   policy pages), with a clear label matching what's actually rendered.
@@ -111,7 +113,17 @@ component. This section makes a defined subset of that copy admin-editable.
 
 ### 1.3 Wire public components to the content source
 
-- Status: `[ ]`
+- Status: `[x]`
+- Implementation notes (2026-08-29): `useSiteContent(key)` hook (in `siteContent.ts`) fetches once and returns the default until (if ever) a saved edit loads. Wired into `Hero.tsx`, `Intro.tsx`, `EditorialFeature.tsx`, `Handcrafted.tsx` (Process), `Artist.tsx`, `NewsletterSection.tsx`, `Footer.tsx`, and `PolicyPage.tsx` (all 5 topics). Multi-line display headlines (Hero, EditorialFeature, Process) are edited as one line per textarea row and rendered with a `<br/>` between each — this drops a couple of very minor responsive line-break nuances the original hardcoded JSX had (e.g. one `<br/>` that only applied above `sm:`), an accepted tradeoff for admin-editability.
+
+## Section 1 addendum: dashboard dark mode, branding — 2026-08-29 (user request, not in the original plan)
+
+While finishing section 1, the user also asked for: a light/dark theme toggle across the whole `/admin` area, the site's actual logo in the dashboard (previously just a text wordmark), and a "Powered by Tiago Brazil" credit (linking to tiagobrazil.com.br) in both the public footer and the dashboard.
+
+- **Dark mode**: added a second, admin-only token set (`--color-admin-bg/surface/input/border/border-soft/ink/ink-muted/muted`) in `src/index.css`, defined once at light-mode defaults in `@theme` and overridden under a `[data-admin-theme="dark"]` selector — scoped to a `data-admin-theme` attribute `AdminLayout` puts on its root wrapper, so it never touches the public site's fixed palette. `AdminLayout` has a sun/moon toggle button that flips the attribute and persists the choice to `localStorage` (`ass:admin-theme:v1`). Every admin page/component (`Dashboard`, `Products`, `ProductEditor`, `Posts`, `PostEditor`, `Categories`, `Content`, `Settings`, `Media`, `Orders`, `Login`, `MediaPickerModal`, `ImagePickerField`, `ProductImagesField`, `RichTextEditor`) had its surface/border/text Tailwind classes (`bg-cream`→`bg-admin-surface`, `bg-ivory-dim`→`bg-admin-bg`, `border-stone(-dark)`→`border-admin-border(-soft)`, `text-charcoal`→`text-admin-ink`, `text-warmgray(-dark)`→`text-admin-muted`/`text-admin-ink-muted`) swapped to the new tokens. Deliberately **left untouched**: small fixed-color "chips" — solid active/selected states (`bg-charcoal text-ivory`, `bg-olive text-ivory`), and icon buttons/badges floating directly over photo thumbnails (`bg-ivory`/`bg-charcoal` overlays in `Media.tsx`, `ProductImagesField.tsx`, `ImagePickerField.tsx`) — these read fine as fixed high-contrast elements in either theme and mixing them into the flip risked breaking contrast (verified this concern is real: `bg-olive text-ivory` on the nav active state would have broken had `ivory` itself been flipped instead of introducing separate tokens). `Login.tsx` also uses the new tokens but is not wrapped in the theme toggle (it's outside `AdminLayout`, pre-auth), so it always renders in the light values — that's intentional, not a bug.
+- **Logo**: `AdminLayout`'s sidebar header now shows `<BrandMark decorative={false} size="sm" />` next to the wordmark (previously text-only). `Login.tsx` already had the full `<Logo />` lockup.
+- **"Powered by Tiago Brazil"**: added to the public `Footer.tsx` bottom bar and to `AdminLayout`'s sidebar footer, both linking to `https://www.tiagobrazil.com.br`.
+- `npm run lint` / `npm run build` pass clean; verified the compiled CSS contains the new `.bg-admin-surface` utility and the `[data-admin-theme=dark]` override block with the expected values.
 - Deliverable: each section in scope reads its copy from
   `getSiteContent(key)` with the current hardcoded string kept as the
   fallback default, so the site renders correctly even before an admin

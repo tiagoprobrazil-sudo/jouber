@@ -4,17 +4,20 @@ import { PageContainer } from "@/components/ui/PageContainer";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
 import { editorialImages } from "@/lib/data/mock/images";
+import { useSiteContent } from "@/lib/data/siteContent";
 
 export function NewsletterSection() {
+  const content = useSiteContent("newsletter");
+
   return (
-    <section className="overflow-hidden border-t border-ink/15 bg-ivory-dim section-generous">
+    <section className="home-letter relative overflow-hidden border-t border-ink/15 bg-ivory-dim section-generous">
       <PageContainer className="editorial-grid items-center">
         <Reveal className="col-span-4 sm:col-span-6 sm:col-start-2 lg:col-span-6 lg:col-start-2">
-          <SectionEyebrow tone="olive" className="mb-6">The Atelier Letter</SectionEyebrow>
-          <EditorialHeading as="h2" size="heading-lg" className="max-w-[11ch]">Stay close to the Atelier</EditorialHeading>
-          <p className="type-body mt-6 max-w-[38ch] text-ink-muted">Receive new works, stories and updates from the atelier.</p>
+          <SectionEyebrow tone="olive" className="mb-6">{content.eyebrow}</SectionEyebrow>
+          <EditorialHeading as="h2" size="heading-lg" className="max-w-[11ch]">{content.heading}</EditorialHeading>
+          <p className="type-body mt-6 max-w-[38ch] text-ink-muted">{content.body}</p>
           <NewsletterForm className="mt-9 sm:max-w-md" />
-          <p className="type-caption mt-5 text-ink-muted">Occasional notes from the workshop.</p>
+          <p className="type-caption mt-5 text-ink-muted">{content.caption}</p>
         </Reveal>
 
         <Reveal delay={120} className="col-span-3 col-start-2 mt-14 sm:col-span-4 sm:col-start-5 lg:col-span-3 lg:col-start-9 lg:mt-0">

@@ -76,7 +76,7 @@ export default function PostEditor() {
   return (
     <div className="max-w-4xl">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">{isNew ? "New Post" : "Edit Post"}</h1>
+        <h1 className="font-serif text-3xl text-admin-ink">{isNew ? "New Post" : "Edit Post"}</h1>
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" icon={preview ? <EyeOff size={14} /> : <Eye size={14} />} onClick={() => setPreview((p) => !p)}>
             {preview ? "Edit" : "Preview"}
@@ -91,10 +91,10 @@ export default function PostEditor() {
       </div>
 
       {preview ? (
-        <article className="border border-stone-dark bg-cream p-8">
-          <p className="font-sans text-xs uppercase tracking-wide text-warmgray">{form.category}</p>
-          <h2 className="mt-2 font-serif text-3xl text-charcoal">{form.title || "Untitled post"}</h2>
-          {form.subtitle && <p className="mt-2 font-sans text-warmgray-dark">{form.subtitle}</p>}
+        <article className="border border-admin-border bg-admin-surface p-8">
+          <p className="font-sans text-xs uppercase tracking-wide text-admin-muted">{form.category}</p>
+          <h2 className="mt-2 font-serif text-3xl text-admin-ink">{form.title || "Untitled post"}</h2>
+          {form.subtitle && <p className="mt-2 font-sans text-admin-ink-muted">{form.subtitle}</p>}
           {form.coverImage.url && (
             <div className="my-6 aspect-[16/9] overflow-hidden">
               <img src={form.coverImage.url} alt="" className="h-full w-full object-cover" />
@@ -105,7 +105,7 @@ export default function PostEditor() {
       ) : (
         <div className="space-y-8">
           <div>
-            <label htmlFor="post-title" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">
+            <label htmlFor="post-title" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">
               Title
             </label>
             <input
@@ -116,13 +116,13 @@ export default function PostEditor() {
                 update("title", e.target.value);
                 if (!slugTouched) update("slug", slugify(e.target.value));
               }}
-              className="w-full border border-stone-dark bg-cream px-4 py-3 font-serif text-xl focus:border-olive focus:outline-none"
+              className="w-full border border-admin-border bg-admin-surface px-4 py-3 font-serif text-xl focus:border-olive focus:outline-none"
             />
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div>
-              <label htmlFor="post-slug" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">
+              <label htmlFor="post-slug" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">
                 Slug
               </label>
               <input
@@ -133,18 +133,18 @@ export default function PostEditor() {
                   setSlugTouched(true);
                   update("slug", slugify(e.target.value));
                 }}
-                className="w-full border border-stone-dark bg-cream px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+                className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
               />
             </div>
             <div>
-              <label htmlFor="post-category" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">
+              <label htmlFor="post-category" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">
                 Category
               </label>
               <select
                 id="post-category"
                 value={form.category}
                 onChange={(e) => update("category", e.target.value)}
-                className="w-full border border-stone-dark bg-cream px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+                className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.slug}>
@@ -156,7 +156,7 @@ export default function PostEditor() {
           </div>
 
           <div>
-            <label htmlFor="post-subtitle" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">
+            <label htmlFor="post-subtitle" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">
               Subtitle
             </label>
             <input
@@ -164,12 +164,12 @@ export default function PostEditor() {
               type="text"
               value={form.subtitle ?? ""}
               onChange={(e) => update("subtitle", e.target.value)}
-              className="w-full border border-stone-dark bg-cream px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+              className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
             />
           </div>
 
           <div>
-            <label htmlFor="post-excerpt" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">
+            <label htmlFor="post-excerpt" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">
               Excerpt
             </label>
             <textarea
@@ -177,7 +177,7 @@ export default function PostEditor() {
               rows={2}
               value={form.excerpt}
               onChange={(e) => update("excerpt", e.target.value)}
-              className="w-full border border-stone-dark bg-cream px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+              className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
             />
           </div>
 
@@ -189,7 +189,7 @@ export default function PostEditor() {
           />
 
           <div>
-            <p className="mb-1.5 font-sans text-xs uppercase tracking-wide text-warmgray">Content</p>
+            <p className="mb-1.5 font-sans text-xs uppercase tracking-wide text-admin-muted">Content</p>
             <RichTextEditor value={form.content} onChange={(html) => update("content", html)} />
           </div>
         </div>

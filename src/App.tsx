@@ -27,6 +27,7 @@ const AdminProductEditor = lazy(() => import("@/pages/admin/ProductEditor"));
 const AdminMedia = lazy(() => import("@/pages/admin/Media"));
 const AdminOrders = lazy(() => import("@/pages/admin/Orders"));
 const AdminCategories = lazy(() => import("@/pages/admin/Categories"));
+const AdminContent = lazy(() => import("@/pages/admin/Content"));
 const AdminSettings = lazy(() => import("@/pages/admin/Settings"));
 
 export default function App() {
@@ -72,6 +73,7 @@ export default function App() {
             <Route path="media" element={<AdminMedia />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="categories" element={<AdminCategories />} />
+            <Route path="content" element={<AdminContent />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 

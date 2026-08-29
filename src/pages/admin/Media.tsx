@@ -46,8 +46,8 @@ export default function Media() {
     <div>
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl text-charcoal">Media Library</h1>
-          <p className="mt-1 font-sans text-sm text-warmgray">Images used across posts, products and pages.</p>
+          <h1 className="font-serif text-3xl text-admin-ink">Media Library</h1>
+          <p className="mt-1 font-sans text-sm text-admin-muted">Images used across posts, products and pages.</p>
         </div>
         <label className="flex cursor-pointer items-center gap-2 border border-charcoal px-4 py-2.5 font-sans text-xs uppercase tracking-wide text-charcoal hover:bg-charcoal hover:text-ivory">
           <Upload size={14} strokeWidth={1.5} />
@@ -62,7 +62,7 @@ export default function Media() {
             key={f.value}
             type="button"
             onClick={() => setFilter(f.value)}
-            className={`font-sans text-xs uppercase tracking-[0.16em] ${filter === f.value ? "text-olive" : "text-warmgray hover:text-charcoal"}`}
+            className={`font-sans text-xs uppercase tracking-[0.16em] ${filter === f.value ? "text-olive" : "text-admin-muted hover:text-admin-ink"}`}
           >
             {f.label}
           </button>
@@ -71,7 +71,7 @@ export default function Media() {
 
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
         {visible.map((item) => (
-          <div key={item.id} className="group relative aspect-square overflow-hidden bg-stone">
+          <div key={item.id} className="group relative aspect-square overflow-hidden bg-admin-border-soft">
             <img src={item.url} alt={item.name} loading="lazy" className="h-full w-full object-cover" />
             <div className="absolute inset-x-0 bottom-0 truncate bg-charcoal/70 px-2 py-1 font-sans text-[10px] text-ivory opacity-0 transition-opacity group-hover:opacity-100">
               {item.name}
@@ -86,7 +86,7 @@ export default function Media() {
             </button>
           </div>
         ))}
-        {visible.length === 0 && <p className="col-span-full py-16 text-center font-sans text-sm text-warmgray">No images here yet.</p>}
+        {visible.length === 0 && <p className="col-span-full py-16 text-center font-sans text-sm text-admin-muted">No images here yet.</p>}
       </div>
     </div>
   );

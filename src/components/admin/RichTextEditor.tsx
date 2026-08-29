@@ -39,7 +39,7 @@ function ToolbarButton({
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        "flex h-8 w-8 items-center justify-center border border-stone-dark text-charcoal transition-colors hover:bg-stone",
+        "flex h-8 w-8 items-center justify-center border border-admin-border text-admin-ink transition-colors hover:bg-admin-border-soft",
         active && "bg-charcoal text-ivory hover:bg-charcoal",
       )}
     >
@@ -78,8 +78,8 @@ export function RichTextEditor({ value, onChange }: RichTextEditorProps) {
   }
 
   return (
-    <div className="border border-stone-dark bg-cream">
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-stone-dark p-2">
+    <div className="border border-admin-border bg-admin-surface">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-admin-border p-2">
         <ToolbarButton label="Bold" active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()}>
           <BoldIcon size={14} strokeWidth={2} />
         </ToolbarButton>

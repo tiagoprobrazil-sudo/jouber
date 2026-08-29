@@ -833,31 +833,39 @@ export async function subscribeToNewsletter(email: string): Promise<NewsletterSu
 }
 
 // --------------------------------------------------------------------------
-// Store settings (admin-editable, non-secret store/integration config —
-// real API secrets like SHIPPO_API_KEY/STRIPE_SECRET_KEY are never stored
-// here, only Edge Function secrets — see supabase/README.md).
+// Key/value JSON settings — shared by store_settings (admin-only read/write:
+// non-secret store/integration config; real API secrets like
+// SHIPPO_API_KEY/STRIPE_SECRET_KEY are never stored here, only as Edge
+// Function secrets — see supabase/README.md) and site_content (public
+// read, admin write: editable site copy, see lib/data/siteContent.ts).
 // --------------------------------------------------------------------------
 
-export async function getStoreSetting<T>(key: string): Promise<T | null> {
+async function getJsonSetting<T>(table: "store_settings" | "site_content", key: string): Promise<T | null> {
   if (isSupabaseConfigured) {
-    const { data, error } = await db().from("store_settings").select("value").eq("key", key).maybeSingle();
+    const { data, error } = await db().from(table).select("value").eq("key", key).maybeSingle();
     if (error) throw error;
     return (data?.value as T) ?? null;
   }
-  const list = getCollection<{ key: string; value: unknown }>("store_settings", []);
+  const list = getCollection<{ key: string; value: unknown }>(table, []);
   return (list.find((s) => s.key === key)?.value as T) ?? null;
 }
 
-export async function updateStoreSetting<T>(key: string, value: T): Promise<T> {
+async function setJsonSetting<T>(table: "store_settings" | "site_content", key: string, value: T): Promise<T> {
   if (isSupabaseConfigured) {
-    const { error } = await db().from("store_settings").upsert({ key, value }, { onConflict: "key" });
+    const { error } = await db().from(table).upsert({ key, value }, { onConflict: "key" });
     if (error) throw error;
     return value;
   }
-  const list = getCollection<{ key: string; value: unknown }>("store_settings", []);
-  setCollection("store_settings", [...list.filter((s) => s.key !== key), { key, value }]);
+  const list = getCollection<{ key: string; value: unknown }>(table, []);
+  setCollection(table, [...list.filter((s) => s.key !== key), { key, value }]);
   return value;
 }
+
+export const getStoreSetting = <T>(key: string) => getJsonSetting<T>("store_settings", key);
+export const updateStoreSetting = <T>(key: string, value: T) => setJsonSetting<T>("store_settings", key, value);
+
+export const getSiteContent = <T>(key: string) => getJsonSetting<T>("site_content", key);
+export const updateSiteContent = <T>(key: string, value: T) => setJsonSetting<T>("site_content", key, value);
 
 // --------------------------------------------------------------------------
 // Global search

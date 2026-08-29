@@ -3,6 +3,7 @@ import { InstagramIcon } from "@/components/icons/InstagramIcon";
 import { NewsletterForm } from "@/components/ui/NewsletterForm";
 import { BrandMark } from "@/components/brand/BrandMark";
 import { SaintSebastianIllustration } from "@/components/brand/SaintSebastianIllustration";
+import { useSiteContent } from "@/lib/data/siteContent";
 
 const EXPLORE_LINKS = [
   { label: "Home", to: "/" },
@@ -21,6 +22,8 @@ const CARE_LINKS = [
 ];
 
 export function Footer() {
+  const content = useSiteContent("footer");
+
   return (
     <footer className="relative overflow-hidden border-t border-white/10 bg-charcoal text-stone">
       <SaintSebastianIllustration className="pointer-events-none absolute -bottom-[12%] right-[-9rem] hidden w-[34rem] opacity-[0.075] lg:block wide:right-[-4rem] wide:w-[40rem]" />
@@ -39,10 +42,7 @@ export function Footer() {
                 </span>
               </span>
             </div>
-            <p className="mt-6 max-w-[34rem] font-sans text-sm leading-relaxed text-stone/70">
-              A devotional art studio creating hand-painted statues, sacred icons and objects of
-              faith — made with tradition, craftsmanship and reverence.
-            </p>
+            <p className="mt-6 max-w-[34rem] font-sans text-sm leading-relaxed text-stone/70">{content.description}</p>
           </div>
 
           <div className="col-span-2 sm:col-span-3 lg:col-start-6 lg:col-span-2">
@@ -75,7 +75,7 @@ export function Footer() {
       <div className="relative border-t border-white/10">
         <div className="container-editorial flex flex-col gap-2 py-5 font-sans text-[0.6875rem] uppercase tracking-[0.12em] text-stone/55 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Atelier Saint Sebastian</p>
-          <p>Made by hand · Kept in faith</p>
+          <p>{content.tagline}</p>
           <p>
             Powered by{" "}
             <a

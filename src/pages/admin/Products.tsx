@@ -37,17 +37,17 @@ export default function AdminProducts() {
     <div>
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-charcoal">Products</h1>
-          <p className="mt-1 font-sans text-sm text-warmgray">The atelier's shop.</p>
+          <h1 className="font-serif text-3xl text-admin-ink">Products</h1>
+          <p className="mt-1 font-sans text-sm text-admin-muted">The atelier's shop.</p>
         </div>
         <ButtonLink to="/admin/products/new" icon={<Plus size={15} strokeWidth={1.5} />} size="sm">
           New Product
         </ButtonLink>
       </div>
 
-      <div className="overflow-x-auto border border-stone-dark bg-cream">
+      <div className="overflow-x-auto border border-admin-border bg-admin-surface">
         <table className="w-full min-w-[760px] text-left font-sans text-sm">
-          <thead className="border-b border-stone-dark text-xs uppercase tracking-wide text-warmgray">
+          <thead className="border-b border-admin-border text-xs uppercase tracking-wide text-admin-muted">
             <tr>
               <th className="px-5 py-3 font-medium">Product</th>
               <th className="px-5 py-3 font-medium">Price</th>
@@ -57,27 +57,27 @@ export default function AdminProducts() {
               <th className="px-5 py-3 font-medium text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone">
+          <tbody className="divide-y divide-admin-border-soft">
             {products?.map((p) => (
               <tr key={p.id}>
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-10 shrink-0 overflow-hidden bg-stone">
+                    <div className="h-12 w-10 shrink-0 overflow-hidden bg-admin-border-soft">
                       <img src={p.images[0]?.url} alt="" className="h-full w-full object-cover" />
                     </div>
                     <div>
-                      <p className="text-charcoal">{p.title}</p>
-                      <p className="font-mono text-xs text-warmgray">{p.sku}</p>
+                      <p className="text-admin-ink">{p.title}</p>
+                      <p className="font-mono text-xs text-admin-muted">{p.sku}</p>
                     </div>
                   </div>
                 </td>
-                <td className="px-5 py-3 text-charcoal">{formatPrice(p.price)}</td>
-                <td className="px-5 py-3 text-warmgray-dark">{p.stock}</td>
+                <td className="px-5 py-3 text-admin-ink">{formatPrice(p.price)}</td>
+                <td className="px-5 py-3 text-admin-ink-muted">{p.stock}</td>
                 <td className="px-5 py-3">
                   <button
                     type="button"
                     onClick={() => toggleActive(p)}
-                    className={`px-2.5 py-1 text-xs uppercase tracking-wide ${p.active ? "bg-olive/15 text-olive-dark" : "bg-stone text-warmgray-dark"}`}
+                    className={`px-2.5 py-1 text-xs uppercase tracking-wide ${p.active ? "bg-olive/15 text-olive-dark" : "bg-admin-border-soft text-admin-ink-muted"}`}
                   >
                     {p.active ? "Active" : "Inactive"}
                   </button>
@@ -86,17 +86,17 @@ export default function AdminProducts() {
                   <button
                     type="button"
                     onClick={() => toggleFeatured(p)}
-                    className={`px-2.5 py-1 text-xs uppercase tracking-wide ${p.featured ? "bg-gold-soft/20 text-gold" : "bg-stone text-warmgray-dark"}`}
+                    className={`px-2.5 py-1 text-xs uppercase tracking-wide ${p.featured ? "bg-gold-soft/20 text-gold" : "bg-admin-border-soft text-admin-ink-muted"}`}
                   >
                     {p.featured ? "Featured" : "—"}
                   </button>
                 </td>
                 <td className="px-5 py-3">
                   <div className="flex items-center justify-end gap-3">
-                    <Link to={`/admin/products/${p.id}`} aria-label={`Edit ${p.title}`} className="text-warmgray hover:text-charcoal">
+                    <Link to={`/admin/products/${p.id}`} aria-label={`Edit ${p.title}`} className="text-admin-muted hover:text-admin-ink">
                       <Pencil size={15} strokeWidth={1.5} />
                     </Link>
-                    <button type="button" onClick={() => handleDelete(p)} aria-label={`Delete ${p.title}`} className="text-warmgray hover:text-red-700">
+                    <button type="button" onClick={() => handleDelete(p)} aria-label={`Delete ${p.title}`} className="text-admin-muted hover:text-red-700">
                       <Trash2 size={15} strokeWidth={1.5} />
                     </button>
                   </div>
@@ -105,7 +105,7 @@ export default function AdminProducts() {
             ))}
             {products?.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-5 py-10 text-center text-warmgray">
+                <td colSpan={6} className="px-5 py-10 text-center text-admin-muted">
                   No products yet.
                 </td>
               </tr>

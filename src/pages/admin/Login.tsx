@@ -29,24 +29,24 @@ export default function Login() {
   return (
     <>
       <SeoHead title="Admin Login" description="Sign in to the Atelier Saint Sebastian admin." path="/admin/login" />
-      <div className="flex min-h-screen items-center justify-center bg-ivory-dim px-6">
+      <div className="flex min-h-screen items-center justify-center bg-admin-bg px-6">
         <div className="w-full max-w-sm">
           <div className="mb-10 flex justify-center">
             <Logo />
           </div>
-          <form onSubmit={handleSubmit} className="border border-stone-dark bg-cream p-8">
-            <h1 className="font-serif text-2xl text-charcoal">Admin Sign In</h1>
+          <form onSubmit={handleSubmit} className="border border-admin-border bg-admin-surface p-8">
+            <h1 className="font-serif text-2xl text-admin-ink">Admin Sign In</h1>
             {isSupabaseConfigured ? (
-              <p className="mt-1 mb-6 font-sans text-xs text-warmgray">Sign in with your admin account.</p>
+              <p className="mt-1 mb-6 font-sans text-xs text-admin-muted">Sign in with your admin account.</p>
             ) : (
-              <p className="mt-1 mb-6 font-sans text-xs text-warmgray">
+              <p className="mt-1 mb-6 font-sans text-xs text-admin-muted">
                 Demo credentials: {DEMO_ADMIN_CREDENTIALS.email} / {DEMO_ADMIN_CREDENTIALS.password}
               </p>
             )}
 
             <div className="space-y-4">
               <div>
-                <label htmlFor="login-email" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">
+                <label htmlFor="login-email" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">
                   Email
                 </label>
                 <input
@@ -55,11 +55,11 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full border border-stone-dark bg-transparent px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+                  className="w-full border border-admin-border bg-transparent px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
                 />
               </div>
               <div>
-                <label htmlFor="login-password" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">
+                <label htmlFor="login-password" className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">
                   Password
                 </label>
                 <input
@@ -68,7 +68,7 @@ export default function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border border-stone-dark bg-transparent px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+                  className="w-full border border-admin-border bg-transparent px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
                 />
               </div>
             </div>

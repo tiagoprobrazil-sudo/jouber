@@ -5,15 +5,18 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
 import { SectionNumber } from "@/components/ui/SectionNumber";
 import { editorialImages } from "@/lib/data/mock/images";
+import { useSiteContent } from "@/lib/data/siteContent";
 
 export function Intro() {
+  const content = useSiteContent("intro");
+
   return (
     <section className="relative z-10 overflow-visible bg-ivory py-20 sm:py-28 lg:py-40">
       <PageContainer className="editorial-grid relative items-start gap-y-0">
         <Reveal className="col-span-4 flex items-center gap-4 sm:col-span-8 lg:col-span-4 lg:col-start-2 lg:row-start-1">
           <SectionNumber number={2} />
           <span className="h-px w-10 bg-stone-dark" aria-hidden="true" />
-          <SectionEyebrow>The Atelier</SectionEyebrow>
+          <SectionEyebrow>{content.eyebrow}</SectionEyebrow>
         </Reveal>
 
         <Reveal
@@ -21,7 +24,7 @@ export function Intro() {
           className="relative z-20 col-span-4 mt-7 sm:col-span-8 sm:mt-9 lg:col-span-8 lg:col-start-2 lg:row-start-2 lg:mt-12"
         >
           <EditorialHeading size="heading-lg" className="max-w-[10ch] lg:max-w-[12ch]">
-            Art created with devotion.
+            {content.heading}
           </EditorialHeading>
         </Reveal>
 
@@ -50,20 +53,11 @@ export function Intro() {
           className="col-span-4 mt-9 sm:col-span-6 sm:col-start-2 lg:col-span-4 lg:col-start-2 lg:row-start-3 lg:mt-14"
         >
           <div className="measure-copy-narrow space-y-5 text-warmgray-dark">
-            <p className="type-body-lg">
-              Every piece that leaves the atelier is shaped and finished by hand — cast, painted in layers, and gilded
-              with restraint. It is work born from a long relationship between art, faith, ancestry and devotion,
-              carried forward one statue, one icon, one prayer candle at a time.
-            </p>
-            <p className="type-body">
-              Nothing here is mass-produced. Small variations in paint and gilding are not corrected — they are the
-              mark of the hand that made it.
-            </p>
+            <p className="type-body-lg">{content.bodyLead}</p>
+            <p className="type-body">{content.bodySecondary}</p>
           </div>
 
-          <p className="type-caption mt-10 uppercase tracking-[0.16em] text-olive">
-            Devotional Art / Hand Finished
-          </p>
+          <p className="type-caption mt-10 uppercase tracking-[0.16em] text-olive">{content.caption}</p>
         </Reveal>
       </PageContainer>
 

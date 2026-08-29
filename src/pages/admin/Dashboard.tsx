@@ -6,9 +6,9 @@ import { formatDate, formatPrice } from "@/lib/utils/format";
 
 function StatTile({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="border border-stone-dark bg-cream p-6">
-      <p className="font-sans text-xs uppercase tracking-[0.16em] text-warmgray">{label}</p>
-      <p className="mt-2 font-serif text-3xl text-charcoal">{value}</p>
+    <div className="border border-admin-border bg-admin-surface p-6">
+      <p className="font-sans text-xs uppercase tracking-[0.16em] text-admin-muted">{label}</p>
+      <p className="mt-2 font-serif text-3xl text-admin-ink">{value}</p>
     </div>
   );
 }
@@ -29,8 +29,8 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1 className="font-serif text-3xl text-charcoal">Dashboard</h1>
-      <p className="mt-1 font-sans text-sm text-warmgray">An overview of the atelier's shop and journal.</p>
+      <h1 className="font-serif text-3xl text-admin-ink">Dashboard</h1>
+      <p className="mt-1 font-sans text-sm text-admin-muted">An overview of the atelier's shop and journal.</p>
 
       <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatTile label="Total Products" value={products.length} />
@@ -40,42 +40,42 @@ export default function Dashboard() {
       </div>
 
       <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div className="border border-stone-dark bg-cream">
-          <div className="flex items-center justify-between border-b border-stone-dark px-6 py-4">
+        <div className="border border-admin-border bg-admin-surface">
+          <div className="flex items-center justify-between border-b border-admin-border px-6 py-4">
             <h2 className="font-serif text-lg">Recent Orders</h2>
-            <Link to="/admin/orders" className="font-sans text-xs uppercase tracking-wide text-warmgray hover:text-charcoal">
+            <Link to="/admin/orders" className="font-sans text-xs uppercase tracking-wide text-admin-muted hover:text-admin-ink">
               View all
             </Link>
           </div>
-          <ul className="divide-y divide-stone">
+          <ul className="divide-y divide-admin-border-soft">
             {orders.slice(0, 5).map((o) => (
               <li key={o.id} className="flex items-center justify-between px-6 py-3.5">
                 <div>
-                  <p className="font-sans text-sm text-charcoal">{o.customerEmail}</p>
-                  <p className="font-sans text-xs text-warmgray">{formatDate(o.createdAt)} · {o.status}</p>
+                  <p className="font-sans text-sm text-admin-ink">{o.customerEmail}</p>
+                  <p className="font-sans text-xs text-admin-muted">{formatDate(o.createdAt)} · {o.status}</p>
                 </div>
                 <span className="font-sans text-sm">{formatPrice(o.subtotal)}</span>
               </li>
             ))}
-            {orders.length === 0 && <li className="px-6 py-6 font-sans text-sm text-warmgray">No orders yet.</li>}
+            {orders.length === 0 && <li className="px-6 py-6 font-sans text-sm text-admin-muted">No orders yet.</li>}
           </ul>
         </div>
 
-        <div className="border border-stone-dark bg-cream">
-          <div className="flex items-center justify-between border-b border-stone-dark px-6 py-4">
+        <div className="border border-admin-border bg-admin-surface">
+          <div className="flex items-center justify-between border-b border-admin-border px-6 py-4">
             <h2 className="font-serif text-lg">Recent Posts</h2>
-            <Link to="/admin/posts" className="font-sans text-xs uppercase tracking-wide text-warmgray hover:text-charcoal">
+            <Link to="/admin/posts" className="font-sans text-xs uppercase tracking-wide text-admin-muted hover:text-admin-ink">
               View all
             </Link>
           </div>
-          <ul className="divide-y divide-stone">
+          <ul className="divide-y divide-admin-border-soft">
             {posts.slice(0, 5).map((p) => (
               <li key={p.id} className="flex items-center justify-between px-6 py-3.5">
-                <p className="font-sans text-sm text-charcoal">{p.title}</p>
-                <span className="font-sans text-xs uppercase tracking-wide text-warmgray">{p.status}</span>
+                <p className="font-sans text-sm text-admin-ink">{p.title}</p>
+                <span className="font-sans text-xs uppercase tracking-wide text-admin-muted">{p.status}</span>
               </li>
             ))}
-            {posts.length === 0 && <li className="px-6 py-6 font-sans text-sm text-warmgray">No posts yet.</li>}
+            {posts.length === 0 && <li className="px-6 py-6 font-sans text-sm text-admin-muted">No posts yet.</li>}
           </ul>
         </div>
       </div>

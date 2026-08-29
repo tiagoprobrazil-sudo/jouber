@@ -39,12 +39,12 @@ function TextField({
 }) {
   return (
     <div className={className}>
-      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">{label}</label>
+      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-stone-dark bg-cream px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+        className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
       />
     </div>
   );
@@ -124,7 +124,7 @@ export default function ProductEditor() {
   return (
     <div className="max-w-3xl">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="font-serif text-3xl text-charcoal">{isNew ? "New Product" : "Edit Product"}</h1>
+        <h1 className="font-serif text-3xl text-admin-ink">{isNew ? "New Product" : "Edit Product"}</h1>
         <Button size="sm" disabled={saving} onClick={handleSave}>
           {saving ? "Saving…" : "Save Product"}
         </Button>
@@ -153,27 +153,27 @@ export default function ProductEditor() {
         </div>
 
         <div>
-          <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Excerpt</label>
+          <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">Excerpt</label>
           <input
             type="text"
             value={form.excerpt}
             onChange={(e) => update("excerpt", e.target.value)}
-            className="w-full border border-stone-dark bg-cream px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+            className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
           />
         </div>
 
         <div>
-          <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Description</label>
+          <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">Description</label>
           <textarea
             rows={4}
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
-            className="w-full border border-stone-dark bg-cream px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+            className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
           />
         </div>
 
         <div>
-          <p className="mb-2 font-sans text-xs uppercase tracking-wide text-warmgray">Categories</p>
+          <p className="mb-2 font-sans text-xs uppercase tracking-wide text-admin-muted">Categories</p>
           <div className="flex flex-wrap gap-2">
             {categories.map((c) => (
               <button
@@ -181,7 +181,7 @@ export default function ProductEditor() {
                 type="button"
                 onClick={() => toggleCategory(c.slug)}
                 className={`border px-3 py-1.5 font-sans text-xs transition-colors ${
-                  form.categorySlugs.includes(c.slug) ? "border-charcoal bg-charcoal text-ivory" : "border-stone-dark text-charcoal hover:border-charcoal"
+                  form.categorySlugs.includes(c.slug) ? "border-charcoal bg-charcoal text-ivory" : "border-admin-border text-admin-ink hover:border-charcoal"
                 }`}
               >
                 {c.name}
@@ -209,8 +209,8 @@ export default function ProductEditor() {
         </div>
 
         <div>
-          <p className="mb-2 font-sans text-xs uppercase tracking-wide text-warmgray">
-            Shipping parcel <span className="normal-case text-warmgray/70">— used to quote live carrier rates at checkout</span>
+          <p className="mb-2 font-sans text-xs uppercase tracking-wide text-admin-muted">
+            Shipping parcel <span className="normal-case text-admin-muted/70">— used to quote live carrier rates at checkout</span>
           </p>
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
             <TextField
@@ -238,7 +238,7 @@ export default function ProductEditor() {
               onChange={(v) => update("shippingHeightIn", v ? Number(v) : undefined)}
             />
           </div>
-          <p className="mt-2 font-sans text-xs text-warmgray">
+          <p className="mt-2 font-sans text-xs text-admin-muted">
             Left blank, checkout uses a generic fallback box so shipping quotes still work — fill this in
             for an accurate rate on this product.
           </p>
@@ -246,8 +246,8 @@ export default function ProductEditor() {
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <p className="font-sans text-xs uppercase tracking-wide text-warmgray">
-              Variants <span className="normal-case text-warmgray/70">— e.g. sizes or finishes, each optionally priced differently</span>
+            <p className="font-sans text-xs uppercase tracking-wide text-admin-muted">
+              Variants <span className="normal-case text-admin-muted/70">— e.g. sizes or finishes, each optionally priced differently</span>
             </p>
             <button
               type="button"
@@ -261,7 +261,7 @@ export default function ProductEditor() {
           {form.variants?.length ? (
             <div className="space-y-3">
               {form.variants.map((v) => (
-                <div key={v.id} className="grid grid-cols-[1fr_1fr_1fr_auto_auto] items-end gap-3 border border-stone-dark bg-cream p-3">
+                <div key={v.id} className="grid grid-cols-[1fr_1fr_1fr_auto_auto] items-end gap-3 border border-admin-border bg-admin-surface p-3">
                   <TextField label="Name" value={v.name} onChange={(val) => updateVariant(v.id, { name: val })} />
                   <TextField label="Option label" value={v.optionLabel} onChange={(val) => updateVariant(v.id, { optionLabel: val })} />
                   <TextField
@@ -270,7 +270,7 @@ export default function ProductEditor() {
                     value={v.priceModifier ?? ""}
                     onChange={(val) => updateVariant(v.id, { priceModifier: val ? Number(val) : undefined })}
                   />
-                  <label className="flex items-center gap-2 pb-2.5 font-sans text-xs text-charcoal">
+                  <label className="flex items-center gap-2 pb-2.5 font-sans text-xs text-admin-ink">
                     <input
                       type="checkbox"
                       checked={v.inStock}
@@ -283,7 +283,7 @@ export default function ProductEditor() {
                     type="button"
                     onClick={() => removeVariant(v.id)}
                     aria-label={`Remove ${v.name || "variant"}`}
-                    className="mb-2.5 text-warmgray hover:text-red-700"
+                    className="mb-2.5 text-admin-muted hover:text-red-700"
                   >
                     <Trash2 size={15} strokeWidth={1.5} />
                   </button>
@@ -291,22 +291,22 @@ export default function ProductEditor() {
               ))}
             </div>
           ) : (
-            <p className="font-sans text-xs text-warmgray">No variants — this product has a single price and no options.</p>
+            <p className="font-sans text-xs text-admin-muted">No variants — this product has a single price and no options.</p>
           )}
         </div>
 
         <ProductImagesField images={form.images} onChange={(images) => update("images", images)} />
 
-        <div className="flex flex-wrap gap-8 border-t border-stone-dark pt-6">
-          <label className="flex items-center gap-2.5 font-sans text-sm text-charcoal">
+        <div className="flex flex-wrap gap-8 border-t border-admin-border pt-6">
+          <label className="flex items-center gap-2.5 font-sans text-sm text-admin-ink">
             <input type="checkbox" checked={form.active} onChange={(e) => update("active", e.target.checked)} className="h-4 w-4 accent-olive" />
             Active
           </label>
-          <label className="flex items-center gap-2.5 font-sans text-sm text-charcoal">
+          <label className="flex items-center gap-2.5 font-sans text-sm text-admin-ink">
             <input type="checkbox" checked={form.featured} onChange={(e) => update("featured", e.target.checked)} className="h-4 w-4 accent-olive" />
             Featured on Home
           </label>
-          <label className="flex items-center gap-2.5 font-sans text-sm text-charcoal">
+          <label className="flex items-center gap-2.5 font-sans text-sm text-admin-ink">
             <input
               type="checkbox"
               checked={form.customizable}

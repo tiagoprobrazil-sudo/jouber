@@ -30,10 +30,10 @@ export function ProductImagesField({ images, onChange }: ProductImagesFieldProps
 
   return (
     <div>
-      <p className="mb-2 font-sans text-xs uppercase tracking-wide text-warmgray">Images (first is the primary photo)</p>
+      <p className="mb-2 font-sans text-xs uppercase tracking-wide text-admin-muted">Images (first is the primary photo)</p>
       <div className="flex flex-wrap gap-3">
         {images.map((img, i) => (
-          <div key={img.id} className="group relative h-28 w-24 shrink-0 overflow-hidden bg-stone">
+          <div key={img.id} className="group relative h-28 w-24 shrink-0 overflow-hidden bg-admin-border-soft">
             <img src={img.url} alt="" className="h-full w-full object-cover" />
             {i === 0 && (
               <span className="absolute left-1 top-1 bg-olive px-1.5 py-0.5 font-sans text-[9px] uppercase tracking-wide text-ivory">
@@ -55,7 +55,7 @@ export function ProductImagesField({ images, onChange }: ProductImagesFieldProps
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="flex h-28 w-24 shrink-0 flex-col items-center justify-center gap-1.5 border border-dashed border-stone-dark text-warmgray hover:border-olive hover:text-olive"
+          className="flex h-28 w-24 shrink-0 flex-col items-center justify-center gap-1.5 border border-dashed border-admin-border text-admin-muted hover:border-olive hover:text-olive"
         >
           <ImagePlus size={18} strokeWidth={1.5} />
           <span className="font-sans text-[11px]">Add</span>

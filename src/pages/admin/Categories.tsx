@@ -49,10 +49,10 @@ export default function Categories() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="font-serif text-3xl text-charcoal">Categories</h1>
-      <p className="mt-1 font-sans text-sm text-warmgray">Used across shop filters, navigation and the Journal.</p>
+      <h1 className="font-serif text-3xl text-admin-ink">Categories</h1>
+      <p className="mt-1 font-sans text-sm text-admin-muted">Used across shop filters, navigation and the Journal.</p>
 
-      <div className="mt-6 flex gap-1 border-b border-stone-dark">
+      <div className="mt-6 flex gap-1 border-b border-admin-border">
         {(["product", "post"] as const).map((t) => (
           <button
             key={t}
@@ -60,7 +60,7 @@ export default function Categories() {
             onClick={() => setTab(t)}
             className={cn(
               "px-4 py-2 font-sans text-xs uppercase tracking-wide transition-colors",
-              tab === t ? "border-b-2 border-olive text-charcoal" : "text-warmgray hover:text-charcoal",
+              tab === t ? "border-b-2 border-olive text-admin-ink" : "text-admin-muted hover:text-admin-ink",
             )}
           >
             {t === "product" ? "Shop categories" : "Journal categories"}
@@ -74,26 +74,26 @@ export default function Categories() {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={tab === "product" ? "New shop category" : "New Journal category"}
-          className="flex-1 border border-stone-dark bg-cream px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+          className="flex-1 border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
         />
         <Button size="sm" icon={<Plus size={14} strokeWidth={1.5} />} onClick={handleCreate}>
           Add
         </Button>
       </div>
 
-      <ul className="mt-8 divide-y divide-stone border border-stone-dark bg-cream">
+      <ul className="mt-8 divide-y divide-admin-border-soft border border-admin-border bg-admin-surface">
         {list?.map((c) => (
           <li key={c.id} className="flex items-center justify-between px-5 py-3.5">
             <div>
-              <p className="font-sans text-sm text-charcoal">{c.name}</p>
-              <p className="font-mono text-xs text-warmgray">/{c.slug}</p>
+              <p className="font-sans text-sm text-admin-ink">{c.name}</p>
+              <p className="font-mono text-xs text-admin-muted">/{c.slug}</p>
             </div>
-            <button type="button" onClick={() => handleDelete(tab, c.id)} aria-label={`Delete ${c.name}`} className="text-warmgray hover:text-red-700">
+            <button type="button" onClick={() => handleDelete(tab, c.id)} aria-label={`Delete ${c.name}`} className="text-admin-muted hover:text-red-700">
               <Trash2 size={15} strokeWidth={1.5} />
             </button>
           </li>
         ))}
-        {list?.length === 0 && <li className="px-5 py-6 font-sans text-sm text-warmgray">No categories yet.</li>}
+        {list?.length === 0 && <li className="px-5 py-6 font-sans text-sm text-admin-muted">No categories yet.</li>}
       </ul>
     </div>
   );

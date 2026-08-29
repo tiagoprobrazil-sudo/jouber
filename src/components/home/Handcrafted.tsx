@@ -4,17 +4,13 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
 import { SectionNumber } from "@/components/ui/SectionNumber";
 import { editorialImages } from "@/lib/data/mock/images";
-
-const POINTS = [
-  { title: "Hand Painted", text: "Every layer of color and gold is applied by hand, never sprayed or stamped." },
-  { title: "Made Individually", text: "One piece finished at a time — not a production line, an atelier." },
-  { title: "Sacred Symbolism", text: "Color, gesture and gilding follow tradition, not trend." },
-  { title: "Unique Finishes", text: "Subtle variation between pieces is kept, not corrected." },
-];
+import { useSiteContent } from "@/lib/data/siteContent";
 
 export function Handcrafted() {
+  const content = useSiteContent("process");
+
   return (
-    <section className="overflow-hidden bg-olive text-ivory section-generous">
+    <section className="home-process relative overflow-hidden bg-olive text-ivory section-generous">
       <PageContainer className="editorial-grid items-start">
         <div className="col-span-4 sm:col-span-8 lg:col-span-6 lg:col-start-1">
           <Reveal>
@@ -51,16 +47,19 @@ export function Handcrafted() {
 
         <div className="col-span-4 mt-10 sm:col-span-6 sm:col-start-2 lg:col-span-5 lg:col-start-8 lg:mt-0">
           <Reveal>
-            <SectionEyebrow tone="light" className="mb-6">Process</SectionEyebrow>
+            <SectionEyebrow tone="light" className="mb-6">{content.eyebrow}</SectionEyebrow>
             <EditorialHeading as="h2" size="heading-lg" tone="light" className="max-sm:text-[2.15rem]">
-              Made by Hand.
-              <br />
-              Created with Meaning.
+              {content.headlineLines.map((line, i) => (
+                <span key={i}>
+                  {i > 0 && <br />}
+                  {line}
+                </span>
+              ))}
             </EditorialHeading>
           </Reveal>
 
           <dl className="mt-10 border-t border-ivory/25 sm:mt-12">
-            {POINTS.map(({ title, text }, index) => (
+            {content.steps.map(({ title, text }, index) => (
               <Reveal key={title} delay={index * 60} className="grid grid-cols-[2.5rem_1fr] gap-3 border-b border-ivory/20 py-5 sm:grid-cols-[4rem_1fr] sm:gap-4 sm:py-7">
                 <SectionNumber number={index + 1} className="pt-1 !text-stone/60" />
                 <div>
