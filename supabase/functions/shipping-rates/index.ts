@@ -4,18 +4,26 @@
 // the Shippo API key never reaches the browser, then returns a simplified
 // list of rates to the client (see src/lib/shipping/shippo.ts).
 //
-// Required secrets (set with `supabase secrets set NAME=value`):
-//   SHIPPO_API_KEY          Shippo token, e.g. shippo_test_xxx or shippo_live_xxx
-//   SHIPPO_ADDRESS_FROM     JSON string, e.g.
-//     {"name":"Atelier Saint Sebastian","street1":"123 Main St","city":"...",
-//      "state":"..","zip":"..","country":"US","phone":"+1...","email":"..."}
+// Required secret (set with `supabase secrets set SHIPPO_API_KEY=...`):
+//   SHIPPO_API_KEY  Shippo token, e.g. shippo_test_xxx or shippo_live_xxx
+//
+// The ship-from address is NOT a secret — it's read from the
+// `store_settings` table (key 'shippo_address_from'), editable by an
+// admin at /admin/settings (see src/pages/admin/Settings.tsx). This
+// function uses the SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY env vars
+// Supabase injects into every Edge Function automatically (no secret to
+// set) to read it, bypassing RLS since this function itself is trusted.
 //
 // Deploy with: supabase functions deploy shipping-rates
 //
 // Request body (see src/lib/shipping/types.ts):
 //   { addressTo: ShippingAddress, parcel: Parcel }
+//   or { statusCheck: true } — a cheap connectivity/config check used by
+//   the admin Settings panel that does NOT call Shippo.
 // Response:
-//   { rates: ShippingRate[] }
+//   { rates: ShippingRate[] } or { ok: boolean, keyMode, addressFromConfigured }
+
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -74,6 +82,16 @@ function toShippoParcel(parcel: Parcel) {
   };
 }
 
+async function getAddressFrom(): Promise<ShippingAddress | null> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) return null;
+  const admin = createClient(supabaseUrl, serviceRoleKey);
+  const { data, error } = await admin.from("store_settings").select("value").eq("key", "shippo_address_from").maybeSingle();
+  if (error || !data) return null;
+  return data.value as ShippingAddress;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: CORS_HEADERS });
@@ -83,26 +101,27 @@ Deno.serve(async (req) => {
   }
 
   const apiKey = Deno.env.get("SHIPPO_API_KEY");
-  const addressFromRaw = Deno.env.get("SHIPPO_ADDRESS_FROM");
-  if (!apiKey || !addressFromRaw) {
-    return jsonResponse(
-      { error: "Shipping is not configured yet (missing SHIPPO_API_KEY / SHIPPO_ADDRESS_FROM secrets)." },
-      501,
-    );
-  }
+  const keyMode = apiKey?.startsWith("shippo_live_") ? "live" : apiKey?.startsWith("shippo_test_") ? "test" : "unknown";
 
-  let addressFrom: ShippingAddress;
-  try {
-    addressFrom = JSON.parse(addressFromRaw);
-  } catch {
-    return jsonResponse({ error: "SHIPPO_ADDRESS_FROM secret is not valid JSON" }, 500);
-  }
-
-  let body: { addressTo?: ShippingAddress; parcel?: Parcel };
+  let body: { addressTo?: ShippingAddress; parcel?: Parcel; statusCheck?: boolean };
   try {
     body = await req.json();
   } catch {
     return jsonResponse({ error: "Invalid JSON body" }, 400);
+  }
+
+  if (body.statusCheck) {
+    const addressFrom = await getAddressFrom();
+    return jsonResponse({ ok: Boolean(apiKey), keyMode, addressFromConfigured: Boolean(addressFrom?.street1) });
+  }
+
+  if (!apiKey) {
+    return jsonResponse({ error: "Shipping is not configured yet (missing SHIPPO_API_KEY secret)." }, 501);
+  }
+
+  const addressFrom = await getAddressFrom();
+  if (!addressFrom?.street1) {
+    return jsonResponse({ error: "Ship-from address is not configured — set it in /admin/settings." }, 501);
   }
 
   const { addressTo, parcel } = body;

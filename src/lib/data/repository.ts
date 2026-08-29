@@ -833,6 +833,33 @@ export async function subscribeToNewsletter(email: string): Promise<NewsletterSu
 }
 
 // --------------------------------------------------------------------------
+// Store settings (admin-editable, non-secret store/integration config —
+// real API secrets like SHIPPO_API_KEY/STRIPE_SECRET_KEY are never stored
+// here, only Edge Function secrets — see supabase/README.md).
+// --------------------------------------------------------------------------
+
+export async function getStoreSetting<T>(key: string): Promise<T | null> {
+  if (isSupabaseConfigured) {
+    const { data, error } = await db().from("store_settings").select("value").eq("key", key).maybeSingle();
+    if (error) throw error;
+    return (data?.value as T) ?? null;
+  }
+  const list = getCollection<{ key: string; value: unknown }>("store_settings", []);
+  return (list.find((s) => s.key === key)?.value as T) ?? null;
+}
+
+export async function updateStoreSetting<T>(key: string, value: T): Promise<T> {
+  if (isSupabaseConfigured) {
+    const { error } = await db().from("store_settings").upsert({ key, value }, { onConflict: "key" });
+    if (error) throw error;
+    return value;
+  }
+  const list = getCollection<{ key: string; value: unknown }>("store_settings", []);
+  setCollection("store_settings", [...list.filter((s) => s.key !== key), { key, value }]);
+  return value;
+}
+
+// --------------------------------------------------------------------------
 // Global search
 // --------------------------------------------------------------------------
 

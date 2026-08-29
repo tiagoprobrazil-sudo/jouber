@@ -188,7 +188,8 @@ giving the admin visibility and control over the *non-secret* parts.
 
 ### 4.1 Integration settings table
 
-- Status: `[ ]`
+- Status: `[x]`
+- Implementation notes (2026-08-29): new `store_settings` table (`key`/`value jsonb`, admin-only RLS) in `0005_store_settings.sql`, seeded with the ship-from address that had been living in the `SHIPPO_ADDRESS_FROM` secret, plus a `store_profile` row (name/currency). No separate test/live flag stored — it's derived live from the key prefix instead (see 4.2), so it can't drift out of sync with the real key.
 - Deliverable: a `store_settings` table (or a couple of well-known rows in
   `site_content` from 1.1) holding the safe-to-edit pieces: Shippo
   `address_from` (name/street/city/state/zip/country/phone/email — today
@@ -199,7 +200,8 @@ giving the admin visibility and control over the *non-secret* parts.
 
 ### 4.2 Shippo panel
 
-- Status: `[ ]`
+- Status: `[x]`
+- Implementation notes (2026-08-29): `shipping-rates` now takes a `{ statusCheck: true }` request that skips Shippo entirely and reports `{ ok, keyMode, addressFromConfigured }` (key mode read from the `SHIPPO_API_KEY` prefix, never the key itself) — cheap enough to call on every Settings page load. The function also switched from the `SHIPPO_ADDRESS_FROM` secret to reading `store_settings` (via the `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` env vars Supabase injects into every Edge Function automatically, no new secret needed) — the old secret was unset after confirming the switch works. `/admin/settings` has a live-status badge plus an editable ship-from address form. Verified via curl: statusCheck, a real rate request, and RLS blocking anonymous reads of `store_settings`.
 - Deliverable: in `/admin/settings`, show live connection status (call the
   `shipping-rates` function with a canned test address and report
   success/failure rather than just linking out to Shippo), whether the key
@@ -212,7 +214,7 @@ giving the admin visibility and control over the *non-secret* parts.
 
 ### 4.3 Stripe panel
 
-- Status: `[ ]`
+- Status: `[x]` (placeholder, as scoped — full panel needs checkout built first)
 - Deliverable: once the Stripe checkout flow itself exists (see
   `[[jouber-payment-gateway-stripe]]` / not yet built — a separate,
   larger piece of work: a PaymentIntent-creating Edge Function + Stripe
@@ -224,7 +226,8 @@ giving the admin visibility and control over the *non-secret* parts.
 
 ### 4.4 Replace the static Settings page
 
-- Status: `[ ]`
+- Status: `[x]`
+- Implementation notes (2026-08-29): `Settings.tsx` rewritten with real Store (editable name/currency, backed by `store_settings`), Shippo (status + editable address) and Stripe (key-mode indicator, computed client-side from `VITE_STRIPE_PUBLISHABLE_KEY`'s prefix) panels, replacing the old static `<dl>`. **Follow-up needed**: `VITE_STRIPE_PUBLISHABLE_KEY` is only in the local `.env`, not yet added to the Cloudflare Workers build variables (see `[[jouber-shippo-shipping-integration]]` for where that is) — until it is, the Stripe panel will show "Not connected" in production even though the key is saved server-side.
 - Deliverable: `Settings.tsx` today is hardcoded display copy ("Payment
   gateway: Not connected", store name/currency as plain text). Once 4.1-4.3
   exist, replace the static `<dl>` with the real panels above plus editable

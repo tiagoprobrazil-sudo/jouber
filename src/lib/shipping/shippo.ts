@@ -1,6 +1,26 @@
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { Parcel, ShippingAddress, ShippingRate, ShippingRatesResponse } from "@/lib/shipping/types";
 
+export interface ShippoStatus {
+  ok: boolean;
+  keyMode: "test" | "live" | "unknown";
+  addressFromConfigured: boolean;
+}
+
+/** Cheap connectivity/config check for the admin Settings panel — does not call Shippo itself. */
+export async function checkShippoStatus(): Promise<ShippoStatus | null> {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const { data, error } = await supabase!.functions.invoke<ShippoStatus>("shipping-rates", {
+      body: { statusCheck: true },
+    });
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 const LATENCY_MS = 180;
 function delay<T>(value: T): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), LATENCY_MS));

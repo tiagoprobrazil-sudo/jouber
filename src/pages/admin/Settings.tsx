@@ -1,8 +1,93 @@
+import { useEffect, useState } from "react";
+import { CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { getStoreSetting, updateStoreSetting } from "@/lib/data/repository";
+import { checkShippoStatus, type ShippoStatus } from "@/lib/shipping/shippo";
+import type { ShippingAddress } from "@/lib/shipping/types";
+import { Button } from "@/components/ui/Button";
+
+interface StoreProfile {
+  name: string;
+  currency: string;
+}
+
+const EMPTY_ADDRESS: ShippingAddress = {
+  name: "",
+  street1: "",
+  street2: "",
+  city: "",
+  state: "",
+  zip: "",
+  country: "US",
+  phone: "",
+  email: "",
+};
+
+function Field({
+  label,
+  value,
+  onChange,
+  className,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full border border-stone-dark bg-cream px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+      />
+    </div>
+  );
+}
+
+function StatusBadge({ ok, label }: { ok: boolean | null; label: string }) {
+  if (ok === null) return <span className="flex items-center gap-1.5 text-warmgray"><AlertCircle size={14} strokeWidth={1.5} /> {label}</span>;
+  return ok ? (
+    <span className="flex items-center gap-1.5 text-olive-dark"><CheckCircle2 size={14} strokeWidth={1.5} /> {label}</span>
+  ) : (
+    <span className="flex items-center gap-1.5 text-red-700"><XCircle size={14} strokeWidth={1.5} /> {label}</span>
+  );
+}
 
 export default function Settings() {
   const { adminEmail } = useAuth();
+
+  const [profile, setProfile] = useState<StoreProfile>({ name: "Atelier Saint Sebastian", currency: "USD" });
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  const [shippoStatus, setShippoStatus] = useState<ShippoStatus | null | undefined>(undefined);
+  const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
+  const [savingAddress, setSavingAddress] = useState(false);
+
+  const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
+  const stripeMode = stripePublishableKey?.startsWith("pk_live_") ? "live" : stripePublishableKey?.startsWith("pk_test_") ? "test" : null;
+
+  useEffect(() => {
+    getStoreSetting<StoreProfile>("store_profile").then((v) => v && setProfile(v));
+    getStoreSetting<ShippingAddress>("shippo_address_from").then((v) => v && setAddress(v));
+    checkShippoStatus().then(setShippoStatus);
+  }, []);
+
+  async function saveProfile() {
+    setSavingProfile(true);
+    await updateStoreSetting("store_profile", profile);
+    setSavingProfile(false);
+  }
+
+  async function saveAddress() {
+    setSavingAddress(true);
+    await updateStoreSetting("shippo_address_from", address);
+    setShippoStatus(await checkShippoStatus());
+    setSavingAddress(false);
+  }
 
   return (
     <div className="max-w-2xl">
@@ -24,21 +109,67 @@ export default function Settings() {
         </div>
 
         <div className="border border-stone-dark bg-cream p-6">
-          <h2 className="font-serif text-lg">Store</h2>
-          <dl className="mt-3 space-y-2 font-sans text-sm">
-            <div className="flex justify-between">
-              <dt className="text-warmgray">Store name</dt>
-              <dd className="text-charcoal">Atelier Saint Sebastian</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-warmgray">Currency</dt>
-              <dd className="text-charcoal">USD</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-warmgray">Payment gateway</dt>
-              <dd className="text-charcoal">Not connected</dd>
-            </div>
-          </dl>
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif text-lg">Store</h2>
+            <Button size="sm" disabled={savingProfile} onClick={saveProfile}>
+              {savingProfile ? "Saving…" : "Save"}
+            </Button>
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Store name" value={profile.name} onChange={(v) => setProfile((p) => ({ ...p, name: v }))} />
+            <Field label="Currency" value={profile.currency} onChange={(v) => setProfile((p) => ({ ...p, currency: v.toUpperCase() }))} />
+          </div>
+        </div>
+
+        <div className="border border-stone-dark bg-cream p-6">
+          <h2 className="font-serif text-lg">Shipping — Shippo</h2>
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
+            <StatusBadge ok={shippoStatus === undefined ? null : Boolean(shippoStatus?.ok)} label={shippoStatus?.ok ? "Connected" : "Not connected"} />
+            <span className="text-warmgray">
+              Mode: <span className="text-charcoal">{shippoStatus?.keyMode ?? "unknown"}</span>
+            </span>
+          </div>
+          {shippoStatus?.keyMode === "test" && (
+            <p className="mt-2 font-sans text-xs text-warmgray">
+              Using a Shippo test token — quotes are realistic but no real carrier is called and nothing is
+              charged. Switch to a shippo_live_ token (via <code>supabase secrets set SHIPPO_API_KEY=...</code>)
+              and connect carrier accounts in the Shippo dashboard to go live.
+            </p>
+          )}
+
+          <div className="mt-6 flex items-center justify-between">
+            <p className="font-sans text-xs uppercase tracking-wide text-warmgray">Ship-from address</p>
+            <Button size="sm" disabled={savingAddress} onClick={saveAddress}>
+              {savingAddress ? "Saving…" : "Save"}
+            </Button>
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Name" value={address.name} onChange={(v) => setAddress((a) => ({ ...a, name: v }))} className="sm:col-span-2" />
+            <Field label="Street" value={address.street1} onChange={(v) => setAddress((a) => ({ ...a, street1: v }))} className="sm:col-span-2" />
+            <Field label="City" value={address.city} onChange={(v) => setAddress((a) => ({ ...a, city: v }))} />
+            <Field label="State" value={address.state} onChange={(v) => setAddress((a) => ({ ...a, state: v }))} />
+            <Field label="Postal code" value={address.zip} onChange={(v) => setAddress((a) => ({ ...a, zip: v }))} />
+            <Field label="Country" value={address.country} onChange={(v) => setAddress((a) => ({ ...a, country: v.toUpperCase() }))} />
+            <Field label="Phone" value={address.phone ?? ""} onChange={(v) => setAddress((a) => ({ ...a, phone: v }))} />
+            <Field label="Email" value={address.email ?? ""} onChange={(v) => setAddress((a) => ({ ...a, email: v }))} />
+          </div>
+        </div>
+
+        <div className="border border-stone-dark bg-cream p-6">
+          <h2 className="font-serif text-lg">Payments — Stripe</h2>
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
+            <StatusBadge ok={stripeMode !== null} label={stripeMode ? "Key saved" : "Not connected"} />
+            {stripeMode && (
+              <span className="text-warmgray">
+                Mode: <span className="text-charcoal">{stripeMode}</span>
+              </span>
+            )}
+          </div>
+          <p className="mt-2 font-sans text-xs text-warmgray">
+            {stripeMode
+              ? "Checkout isn't wired up to Stripe yet — the keys are saved and ready for when that's built."
+              : "No Stripe keys saved yet."}
+          </p>
         </div>
       </div>
     </div>
