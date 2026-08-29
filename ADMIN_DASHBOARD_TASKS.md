@@ -127,7 +127,8 @@ component. This section makes a defined subset of that copy admin-editable.
 
 ### 2.1 Variant management UI
 
-- Status: `[ ]`
+- Status: `[x]`
+- Implementation notes (2026-08-29): added add/edit/remove rows to `ProductEditor` for `{ name, optionLabel, priceModifier, inStock }`. While fixing this, found and fixed a real bug exposed by 0.3: the editor loaded an existing product by searching the *mock seed array* for a matching id, which never matched real Supabase UUIDs (or even a freshly-created mock-mode product, whose id isn't in the seed array either) — editing any product silently landed on a blank form. Added `getProductById` to `repository.ts` and pointed the editor at it directly.
 - Deliverable: `ProductEditor` currently has no UI for `Product.variants`
   at all (confirmed — mugs/statues with size options can only get variants
   seeded in mock data, never edited from the admin). Add add/edit/remove
@@ -136,7 +137,8 @@ component. This section makes a defined subset of that copy admin-editable.
 
 ### 2.2 Product categories used by posts too
 
-- Status: `[ ]`
+- Status: `[x]`
+- Implementation notes (2026-08-29): `Categories.tsx` now has two tabs (Shop categories / Journal categories) backed by `createPostCategory`/`deletePostCategory` added in 0.3.
 - Deliverable: `/admin/categories` only manages `product_categories`
   (confirmed — `repository.ts` has no `createPostCategory`/
   `deletePostCategory` at all, so Journal categories can't be managed from
@@ -156,7 +158,8 @@ component. This section makes a defined subset of that copy admin-editable.
 
 ### 3.1 Scheduled publishing
 
-- Status: `[ ]`
+- Status: `[x]`
+- Implementation notes (2026-08-29): went with a `pg_cron` job (no Edge Function needed — it's a pure data mutation) in a new `0004_scheduled_publishing.sql` migration: every 5 minutes, flips any post with `status = 'scheduled'` and `scheduled_for <= now()` to `published`. Applied via `supabase db push --linked`.
 - Deliverable: a post saved with `status: "scheduled"` and a
   `scheduledFor` date actually flips to `published` at that time.
   Nothing does this today — it's a purely client-rendered app with no

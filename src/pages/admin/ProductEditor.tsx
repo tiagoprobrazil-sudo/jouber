@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import type { Product, ProductCategory } from "@/lib/data/types";
-import { getProductBySlug, getProductCategories, createProduct, updateProduct } from "@/lib/data/repository";
-import { products as seedProducts } from "@/lib/data/mock/products";
+import { Plus, Trash2 } from "lucide-react";
+import type { Product, ProductCategory, ProductVariant } from "@/lib/data/types";
+import { getProductById, getProductCategories, createProduct, updateProduct } from "@/lib/data/repository";
 import { slugify } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { ProductImagesField } from "@/components/admin/ProductImagesField";
@@ -67,22 +67,15 @@ export default function ProductEditor() {
   }, []);
 
   useEffect(() => {
-    if (isNew) return;
-    // Products are looked up by id via the seed list first (repository only
-    // exposes slug lookups publicly), falling back to a slug match.
-    const existing = seedProducts.find((p) => p.id === id) ?? null;
-    if (existing) {
-      getProductBySlug(existing.slug).then((p) => {
-        if (p) {
-          setForm(p);
-          setProductId(p.id);
-          setSlugTouched(true);
-        }
-        setLoading(false);
-      });
-    } else {
+    if (isNew || !id) return;
+    getProductById(id).then((p) => {
+      if (p) {
+        setForm(p);
+        setProductId(p.id);
+        setSlugTouched(true);
+      }
       setLoading(false);
-    }
+    });
   }, [id, isNew]);
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -96,6 +89,22 @@ export default function ProductEditor() {
         ? f.categorySlugs.filter((c) => c !== slug)
         : [...f.categorySlugs, slug],
     }));
+  }
+
+  function addVariant() {
+    const variant: ProductVariant = { id: `new-${Date.now()}`, name: "", optionLabel: "Size", inStock: true };
+    setForm((f) => ({ ...f, variants: [...(f.variants ?? []), variant] }));
+  }
+
+  function updateVariant(id: string, patch: Partial<ProductVariant>) {
+    setForm((f) => ({
+      ...f,
+      variants: f.variants?.map((v) => (v.id === id ? { ...v, ...patch } : v)),
+    }));
+  }
+
+  function removeVariant(id: string) {
+    setForm((f) => ({ ...f, variants: f.variants?.filter((v) => v.id !== id) }));
   }
 
   async function handleSave() {
@@ -233,6 +242,57 @@ export default function ProductEditor() {
             Left blank, checkout uses a generic fallback box so shipping quotes still work — fill this in
             for an accurate rate on this product.
           </p>
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="font-sans text-xs uppercase tracking-wide text-warmgray">
+              Variants <span className="normal-case text-warmgray/70">— e.g. sizes or finishes, each optionally priced differently</span>
+            </p>
+            <button
+              type="button"
+              onClick={addVariant}
+              className="flex items-center gap-1.5 font-sans text-xs uppercase tracking-wide text-olive hover:text-olive-dark"
+            >
+              <Plus size={13} strokeWidth={1.5} />
+              Add variant
+            </button>
+          </div>
+          {form.variants?.length ? (
+            <div className="space-y-3">
+              {form.variants.map((v) => (
+                <div key={v.id} className="grid grid-cols-[1fr_1fr_1fr_auto_auto] items-end gap-3 border border-stone-dark bg-cream p-3">
+                  <TextField label="Name" value={v.name} onChange={(val) => updateVariant(v.id, { name: val })} />
+                  <TextField label="Option label" value={v.optionLabel} onChange={(val) => updateVariant(v.id, { optionLabel: val })} />
+                  <TextField
+                    label="Price modifier"
+                    type="number"
+                    value={v.priceModifier ?? ""}
+                    onChange={(val) => updateVariant(v.id, { priceModifier: val ? Number(val) : undefined })}
+                  />
+                  <label className="flex items-center gap-2 pb-2.5 font-sans text-xs text-charcoal">
+                    <input
+                      type="checkbox"
+                      checked={v.inStock}
+                      onChange={(e) => updateVariant(v.id, { inStock: e.target.checked })}
+                      className="h-4 w-4 accent-olive"
+                    />
+                    In stock
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(v.id)}
+                    aria-label={`Remove ${v.name || "variant"}`}
+                    className="mb-2.5 text-warmgray hover:text-red-700"
+                  >
+                    <Trash2 size={15} strokeWidth={1.5} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="font-sans text-xs text-warmgray">No variants — this product has a single price and no options.</p>
+          )}
         </div>
 
         <ProductImagesField images={form.images} onChange={(images) => update("images", images)} />

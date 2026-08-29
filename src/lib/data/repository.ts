@@ -345,6 +345,20 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   return delay(found);
 }
 
+/** Admin lookup by id (public pages only need slug lookups). */
+export async function getProductById(id: string): Promise<Product | null> {
+  if (isSupabaseConfigured) {
+    const { data, error } = await db().from("products").select(PRODUCT_SELECT).eq("id", id).maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    const row = data as unknown as ProductRow;
+    const ratings = await computeRatings([row.id]);
+    return mapProductRow(row, ratings.get(row.id));
+  }
+  const found = readProducts().find((p) => p.id === id) ?? null;
+  return delay(found);
+}
+
 export async function getRelatedProducts(product: Product, limit = 4): Promise<Product[]> {
   if (isSupabaseConfigured) {
     const results = await Promise.all(product.categorySlugs.map((slug) => getProducts({ categorySlug: slug })));
