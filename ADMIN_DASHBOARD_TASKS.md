@@ -237,8 +237,19 @@ The "keys saved, checkout not built" placeholder from 4.3 is done — full payme
 - `Checkout.tsx`: once a shipping rate is picked, a PaymentIntent is created and Stripe Elements (`@stripe/react-stripe-js`, `@stripe/stripe-js` — new dependencies) mounts a `PaymentElement`. On successful confirmation (`redirect: "if_required"`, since only card is enabled), it calls `create-order`, clears the cart, and shows an inline "Thank you" confirmation. Falls back to the old disabled "Payment Integration Required" state when Stripe isn't configured (mirrors the Shippo fallback pattern).
 - Verified the whole chain via curl before touching the UI: created a PaymentIntent, confirmed it with Stripe's `pm_card_visa` test payment method, called `create-order` and checked the resulting `orders`/`order_items` rows and stock decrement were correct; verified idempotent retry returns the same order; verified a tampered amount is rejected. Test order was deleted and stock restored afterward.
 - `npm run lint` / `npm run build` pass clean.
-- **Known limitation, not solved this session**: no Stripe webhook — `create-order` relies on the client calling it after `confirmPayment` succeeds. If the browser closes/crashes in that gap, the charge succeeds in Stripe but no local order is created. Proper hardening is a `payment_intent.succeeded` webhook as the real source of truth instead. Left as a follow-up since it needs a webhook signing secret set up in the Stripe dashboard.
 - Order `status` is set to `pending` on creation — Orders.tsx still has no UI to change status; that's tracked as existing follow-up work (2.3 in this doc), unaffected by this change.
+
+## Stripe webhook (hardening the checkout above) — 2026-08-30
+
+Closed the "no webhook" gap noted above the same day, once the user asked. Rather than asking the client to generate a webhook signing secret through the Stripe Dashboard, the endpoint was created directly via the Stripe API (`POST /v1/webhook_endpoints`) using the already-saved `sk_test_` key — Stripe returns the signing secret straight in that response, no dashboard click-through needed for anyone.
+
+- Reworked the order-writing logic into `supabase/functions/_shared/finalizeOrder.ts`, shared by two call sites: `create-order` (the client's fast path, called right after `stripe.confirmPayment` succeeds) and a new `stripe-webhook` function (Stripe calls this directly on `payment_intent.succeeded` — the reliable path, since it doesn't depend on the browser still being open). Both are idempotent on `orders.payment_intent_id`, so whichever runs first wins and the other is a no-op.
+- New `checkout_drafts` table (`0008_checkout_drafts.sql`, RLS enabled with no policies — Edge-Function-only via the service role client): `create-payment-intent` now takes the full order (email, items, shipping address/amount) alongside the amount, and saves it here keyed by the new PaymentIntent's id, so both finalization paths have what they need without the client re-sending it. Cleaned up (row deleted) once an order is successfully created from it.
+- `stripe-webhook` verifies the `Stripe-Signature` header (via the `npm:stripe` SDK's `constructEventAsync`, using `STRIPE_WEBHOOK_SECRET`) before trusting anything; deployed with `--no-verify-jwt` since Stripe's requests carry no Supabase auth token.
+- Verified by confirming a test PaymentIntent via the Stripe API directly and **never calling `create-order` at all** — the webhook alone created the order, order_items and stock decrement correctly, and cleaned up the draft. Test data removed afterward.
+- `npm run lint` / `npm run build` pass clean.
+
+This closes the previously-documented gap entirely — checkout now has no known reliability hole.
 - Deliverable: once the Stripe checkout flow itself exists (see
   `[[jouber-payment-gateway-stripe]]` / not yet built — a separate,
   larger piece of work: a PaymentIntent-creating Edge Function + Stripe

@@ -15,20 +15,6 @@ export function getStripe(): Promise<Stripe | null> {
   return stripePromise;
 }
 
-interface PaymentIntentResult {
-  clientSecret: string;
-  paymentIntentId: string;
-}
-
-/** Calls the create-payment-intent Edge Function (supabase/functions/create-payment-intent), which holds STRIPE_SECRET_KEY server-side. */
-export async function createPaymentIntent(amountCents: number, currency: string, receiptEmail?: string): Promise<PaymentIntentResult> {
-  const { data, error } = await supabase!.functions.invoke<PaymentIntentResult>("create-payment-intent", {
-    body: { amountCents, currency, receiptEmail },
-  });
-  if (error || !data) throw error ?? new Error("Could not start payment.");
-  return data;
-}
-
 export interface OrderItemInput {
   productSlug: string;
   productTitle: string;
@@ -37,8 +23,14 @@ export interface OrderItemInput {
   unitPrice: number;
 }
 
-export interface CreateOrderInput {
+interface PaymentIntentResult {
+  clientSecret: string;
   paymentIntentId: string;
+}
+
+export interface CreatePaymentIntentInput {
+  amountCents: number;
+  currency: string;
   email: string;
   subtotal: number;
   shippingAmount: number;
@@ -46,9 +38,33 @@ export interface CreateOrderInput {
   items: OrderItemInput[];
 }
 
-/** Calls create-order (supabase/functions/create-order), which re-verifies the payment with Stripe before writing the order. */
-export async function createOrder(input: CreateOrderInput): Promise<string> {
-  const { data, error } = await supabase!.functions.invoke<{ orderId: string }>("create-order", { body: input });
+/**
+ * Calls create-payment-intent (supabase/functions/create-payment-intent),
+ * which holds STRIPE_SECRET_KEY server-side and — in the same call — saves
+ * the order details (checkout_drafts table) that either create-order or
+ * the stripe-webhook function will use to actually write the order once
+ * payment succeeds.
+ */
+export async function createPaymentIntent(input: CreatePaymentIntentInput): Promise<PaymentIntentResult> {
+  const { data, error } = await supabase!.functions.invoke<PaymentIntentResult>("create-payment-intent", {
+    body: { ...input, receiptEmail: input.email },
+  });
+  if (error || !data) throw error ?? new Error("Could not start payment.");
+  return data;
+}
+
+/**
+ * Calls create-order (supabase/functions/create-order) right after
+ * stripe.confirmPayment succeeds — the fast path for showing an immediate
+ * confirmation. It's fine if this never runs (tab closes, etc.): the
+ * stripe-webhook function reaches the same order-creation logic
+ * independently once Stripe reports the payment succeeded, and whichever
+ * gets there first wins (idempotent on the PaymentIntent id).
+ */
+export async function createOrder(paymentIntentId: string): Promise<string> {
+  const { data, error } = await supabase!.functions.invoke<{ orderId: string }>("create-order", {
+    body: { paymentIntentId },
+  });
   if (error || !data) throw error ?? new Error("Payment succeeded but the order could not be recorded.");
   return data.orderId;
 }

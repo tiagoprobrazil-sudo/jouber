@@ -96,7 +96,21 @@ export default function Checkout() {
     let cancelled = false;
     setPiLoading(true);
     setPaymentError(null);
-    createPaymentIntent(Math.round(total * 100), "usd", email || undefined)
+    createPaymentIntent({
+      amountCents: Math.round(total * 100),
+      currency: "usd",
+      email,
+      subtotal,
+      shippingAmount: selectedRate.amount,
+      shippingAddress: address,
+      items: lines.map((l) => ({
+        productSlug: l.productSlug,
+        productTitle: l.title,
+        variant: l.variant,
+        quantity: l.quantity,
+        unitPrice: l.price,
+      })),
+    })
       .then((result) => {
         if (!cancelled) setClientSecret(result.clientSecret);
       })
@@ -154,26 +168,17 @@ export default function Checkout() {
   }
 
   async function handlePaymentSuccess(paymentIntentId: string) {
-    if (!selectedRate) return;
     try {
-      const orderId = await createOrder({
-        paymentIntentId,
-        email,
-        subtotal,
-        shippingAmount: selectedRate.amount,
-        shippingAddress: address,
-        items: lines.map((l) => ({
-          productSlug: l.productSlug,
-          productTitle: l.title,
-          variant: l.variant,
-          quantity: l.quantity,
-          unitPrice: l.price,
-        })),
-      });
+      const orderId = await createOrder(paymentIntentId);
       setCompletedOrderId(orderId);
       clear();
     } catch {
-      setPaymentError("Payment succeeded, but we couldn't finalize the order. Please contact us with your payment confirmation.");
+      // The stripe-webhook function will still finalize this order
+      // independently once Stripe reports the payment succeeded — the
+      // payment itself is not at risk, only this immediate confirmation.
+      setPaymentError(
+        "Payment succeeded — we're finishing your order confirmation. If this doesn't update shortly, contact us with your payment confirmation.",
+      );
     }
   }
 
