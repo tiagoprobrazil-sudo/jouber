@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Check } from "lucide-react";
 import type { Product, ProductCategory, ProductVariant } from "@/lib/data/types";
 import { getProductById, getProductCategories, createProduct, updateProduct } from "@/lib/data/repository";
 import { slugify } from "@/lib/utils/format";
@@ -173,20 +173,28 @@ export default function ProductEditor() {
         </div>
 
         <div>
-          <p className="mb-2 font-sans text-xs uppercase tracking-wide text-admin-muted">Categories</p>
+          <p className="mb-2 font-sans text-xs uppercase tracking-wide text-admin-muted">
+            Categories <span className="normal-case text-admin-muted/70">— select all that apply</span>
+          </p>
           <div className="flex flex-wrap gap-2">
-            {categories.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => toggleCategory(c.slug)}
-                className={`border px-3 py-1.5 font-sans text-xs transition-colors ${
-                  form.categorySlugs.includes(c.slug) ? "border-charcoal bg-charcoal text-ivory" : "border-admin-border text-admin-ink hover:border-charcoal"
-                }`}
-              >
-                {c.name}
-              </button>
-            ))}
+            {categories.map((c) => {
+              const selected = form.categorySlugs.includes(c.slug);
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => toggleCategory(c.slug)}
+                  className={`flex items-center gap-1.5 border px-3 py-1.5 font-sans text-xs transition-colors ${
+                    selected ? "border-charcoal bg-charcoal text-ivory" : "border-admin-border text-admin-ink hover:border-charcoal"
+                  }`}
+                >
+                  {selected && <Check size={12} strokeWidth={2} />}
+                  {c.name}
+                </button>
+              );
+            })}
+            {categories.length === 0 && <p className="font-sans text-xs text-admin-muted">No categories yet — add some under Categories in the sidebar.</p>}
           </div>
         </div>
 
@@ -200,6 +208,31 @@ export default function ProductEditor() {
           />
           <TextField label="Stock" type="number" value={form.stock} onChange={(v) => update("stock", Number(v))} />
           <TextField label="Weight" value={form.weight ?? ""} onChange={(v) => update("weight", v)} />
+        </div>
+
+        <div>
+          <label className="flex items-center gap-2.5 font-sans text-sm text-admin-ink">
+            <input
+              type="checkbox"
+              checked={form.madeToOrder ?? false}
+              onChange={(e) => update("madeToOrder", e.target.checked)}
+              className="h-4 w-4 accent-olive"
+            />
+            Made to order
+          </label>
+          {form.madeToOrder && (
+            <TextField
+              label="Estimated lead time"
+              className="mt-3 max-w-xs"
+              value={form.leadTime ?? ""}
+              onChange={(v) => update("leadTime", v)}
+            />
+          )}
+          <p className="mt-2 font-sans text-xs text-admin-muted">
+            {form.madeToOrder
+              ? 'Shown on the product page instead of stock-based availability, e.g. "2–3 weeks" or "10 business days".'
+              : "Off by default — the product page shows availability from stock instead."}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">

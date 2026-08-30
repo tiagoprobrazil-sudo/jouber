@@ -124,8 +124,12 @@ export default function ProductDetail() {
               </>
             )}
             <dt className="text-warmgray">Availability</dt>
-            <dd className={product.stock > 0 ? "text-olive" : "text-warmgray"}>
-              {product.stock > 0 ? "In stock, ships in 3–5 days" : "Made to order"}
+            <dd className={product.madeToOrder || product.stock > 0 ? "text-olive" : "text-warmgray"}>
+              {product.madeToOrder
+                ? `Made to order${product.leadTime ? ` — ${product.leadTime}` : ""}`
+                : product.stock > 0
+                  ? "In stock, ships in 3–5 days"
+                  : "Out of stock"}
             </dd>
           </dl>
 
@@ -153,7 +157,9 @@ export default function ProductDetail() {
           <div className="mt-8 space-y-4 border-t border-stone-dark pt-6 font-sans text-sm text-warmgray-dark">
             <p className="flex items-start gap-3">
               <Truck size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-warmgray" />
-              Ships worldwide. Production time 3–7 business days before dispatch.
+              {product.madeToOrder
+                ? `Ships worldwide. Made to order — please allow ${product.leadTime || "extra time"} before dispatch.`
+                : "Ships worldwide. Production time 3–7 business days before dispatch."}
             </p>
             <p className="flex items-start gap-3">
               <RotateCcw size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-warmgray" />

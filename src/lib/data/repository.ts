@@ -160,6 +160,8 @@ interface ProductRow {
   shipping_height_in: number | null;
   sku: string | null;
   stock: number;
+  made_to_order: boolean;
+  lead_time: string | null;
   active: boolean;
   featured: boolean;
   customizable: boolean;
@@ -205,6 +207,8 @@ function mapProductRow(row: ProductRow, rating?: { rating: number; count: number
     shippingHeightIn: row.shipping_height_in != null ? Number(row.shipping_height_in) : undefined,
     sku: row.sku ?? "",
     stock: row.stock,
+    madeToOrder: row.made_to_order,
+    leadTime: row.lead_time ?? undefined,
     active: row.active,
     featured: row.featured,
     customizable: row.customizable,
@@ -427,6 +431,8 @@ function productColumns(data: Partial<Omit<Product, "id" | "createdAt">>) {
     ...(data.shippingHeightIn !== undefined && { shipping_height_in: data.shippingHeightIn ?? null }),
     ...(data.sku !== undefined && { sku: data.sku || null }),
     ...(data.stock !== undefined && { stock: data.stock }),
+    ...(data.madeToOrder !== undefined && { made_to_order: data.madeToOrder }),
+    ...(data.leadTime !== undefined && { lead_time: data.leadTime || null }),
     ...(data.active !== undefined && { active: data.active }),
     ...(data.featured !== undefined && { featured: data.featured }),
     ...(data.customizable !== undefined && { customizable: data.customizable }),

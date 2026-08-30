@@ -69,6 +69,9 @@ export interface Product {
   shippingHeightIn?: number;
   sku: string;
   stock: number;
+  /** Made-to-order pieces don't ship from existing stock — `leadTime` (e.g. "2-3 weeks") tells the customer how long production takes before dispatch. */
+  madeToOrder?: boolean;
+  leadTime?: string;
   active: boolean;
   featured: boolean;
   customizable: boolean;
