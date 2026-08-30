@@ -167,7 +167,7 @@ export default function Settings() {
           </div>
           <p className="mt-2 font-sans text-xs text-admin-muted">
             {stripeMode
-              ? "Checkout isn't wired up to Stripe yet — the keys are saved and ready for when that's built."
+              ? "Checkout collects payment via Stripe Elements. Orders are only recorded after Stripe confirms the charge server-side."
               : "No Stripe keys saved yet."}
           </p>
         </div>

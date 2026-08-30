@@ -21,9 +21,7 @@ export default function Orders() {
   return (
     <div>
       <h1 className="font-serif text-3xl text-admin-ink">Orders</h1>
-      <p className="mt-1 font-sans text-sm text-admin-muted">
-        Illustrative data — connect a payment gateway and Supabase orders table to receive real orders here.
-      </p>
+      <p className="mt-1 font-sans text-sm text-admin-muted">Orders placed and paid for through checkout.</p>
 
       <div className="mt-8 overflow-x-auto border border-admin-border bg-admin-surface">
         <table className="w-full min-w-[640px] text-left font-sans text-sm">
