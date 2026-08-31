@@ -8,6 +8,7 @@
 // checked below before insert).
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { getPrintifyConfig, printifyFetch } from "./printify.ts";
 
 interface OrderItemInput {
   productSlug: string;
@@ -15,6 +16,96 @@ interface OrderItemInput {
   variant?: string;
   quantity: number;
   unitPrice: number;
+}
+
+interface ProductForOrder {
+  id: string;
+  slug: string;
+  stock: number;
+  printify_product_id: string | null;
+  printify_variant_id: number | null;
+  product_variants: { name: string; printify_variant_id: number | null }[];
+}
+
+/**
+ * Submits the Printify-linked items in this order (a product must have
+ * `printify_product_id` set — see the admin Printify catalog import) as a
+ * single Printify order and sends it straight to production. Best-effort:
+ * a failure here does not fail the surrounding order creation — the
+ * customer was already charged and needs their order recorded regardless;
+ * a Printify submission failure just means the order stays without
+ * printify_order_id/tracking and needs a manual look.
+ */
+async function submitToPrintify(
+  admin: SupabaseClient,
+  orderId: string,
+  items: OrderItemInput[],
+  bySlug: Map<string, ProductForOrder>,
+  shippingAddress: Record<string, unknown> | null,
+  email: string,
+): Promise<void> {
+  const config = getPrintifyConfig();
+  if (!config || !shippingAddress) return;
+
+  const lineItems = items.flatMap((item) => {
+    const product = bySlug.get(item.productSlug);
+    if (!product?.printify_product_id) return [];
+    const variantId = item.variant
+      ? product.product_variants.find((v) => v.name === item.variant)?.printify_variant_id
+      : product.printify_variant_id;
+    if (!variantId) return [];
+    return [{ product_id: product.printify_product_id, variant_id: variantId, quantity: item.quantity }];
+  });
+  if (lineItems.length === 0) return;
+
+  const address = shippingAddress as {
+    name?: string;
+    street1?: string;
+    street2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    country?: string;
+    phone?: string;
+  };
+  const [firstName, ...rest] = (address.name ?? "").split(" ");
+
+  try {
+    const createRes = await printifyFetch(config, `/shops/${config.shopId}/orders.json`, {
+      method: "POST",
+      body: JSON.stringify({
+        external_id: orderId,
+        line_items: lineItems,
+        shipping_method: 1, // standard — Printify's default economy/standard option for the print provider
+        send_shipping_notification: false, // Jouber sends its own confirmation; avoid a duplicate from Printify
+        address_to: {
+          first_name: firstName || "Customer",
+          last_name: rest.join(" ") || "-",
+          email,
+          phone: address.phone || "",
+          address1: address.street1 ?? "",
+          address2: address.street2 ?? "",
+          city: address.city ?? "",
+          region: address.state ?? "",
+          zip: address.zip ?? "",
+          country: address.country ?? "",
+        },
+      }),
+    });
+    if (!createRes.ok) {
+      console.error("Printify order creation failed:", await createRes.text());
+      return;
+    }
+    const printifyOrder = await createRes.json();
+
+    await printifyFetch(config, `/shops/${config.shopId}/orders/${printifyOrder.id}/send_to_production.json`, {
+      method: "POST",
+    });
+
+    await admin.from("orders").update({ printify_order_id: printifyOrder.id }).eq("id", orderId);
+  } catch (err) {
+    console.error("Printify submission threw:", err);
+  }
 }
 
 export type FinalizeResult = { ok: true; orderId: string } | { ok: false; status: number; error: string };
@@ -66,8 +157,11 @@ export async function finalizeOrder(
 
   const items = draft.items as OrderItemInput[];
   const slugs = [...new Set(items.map((i) => i.productSlug))];
-  const { data: products } = await admin.from("products").select("id, slug, stock").in("slug", slugs);
-  const bySlug = new Map((products ?? []).map((p) => [p.slug, p]));
+  const { data: products } = await admin
+    .from("products")
+    .select("id, slug, stock, printify_product_id, printify_variant_id, product_variants(name, printify_variant_id)")
+    .in("slug", slugs);
+  const bySlug = new Map(((products ?? []) as unknown as ProductForOrder[]).map((p) => [p.slug, p]));
 
   const { error: itemsError } = await admin.from("order_items").insert(
     items.map((item) => ({
@@ -92,6 +186,8 @@ export async function finalizeOrder(
   }
 
   await admin.from("checkout_drafts").delete().eq("payment_intent_id", paymentIntentId);
+
+  await submitToPrintify(admin, order.id, items, bySlug, draft.shipping_address, draft.email);
 
   return { ok: true, orderId: order.id };
 }

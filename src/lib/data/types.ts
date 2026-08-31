@@ -39,6 +39,8 @@ export interface ProductVariant {
   optionLabel: string;
   priceModifier?: number;
   inStock: boolean;
+  /** Links this variant to a Printify variant id for automatic fulfillment — see lib/printify. */
+  printifyVariantId?: number;
 }
 
 export interface Product {
@@ -74,6 +76,16 @@ export interface Product {
   /** Made-to-order pieces don't ship from existing stock — `leadTime` (e.g. "2-3 weeks") tells the customer how long production takes before dispatch. */
   madeToOrder?: boolean;
   leadTime?: string;
+  /**
+   * Printify fulfillment linkage. `printifyProductId` identifies the
+   * product in the connected Printify shop; `printifyVariantId` is only
+   * used when the product has no local `variants` (single-variant item) —
+   * when it does, each ProductVariant carries its own printifyVariantId
+   * instead. A product with `printifyProductId` set is automatically
+   * submitted to Printify for fulfillment when ordered — see lib/printify.
+   */
+  printifyProductId?: string;
+  printifyVariantId?: number;
   active: boolean;
   featured: boolean;
   customizable: boolean;
@@ -149,6 +161,11 @@ export interface Order {
   status: OrderStatus;
   items: OrderItem[];
   subtotal: number;
+  /** Set once this order's Printify-fulfilled items were submitted for printing — see lib/printify. */
+  printifyOrderId?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
+  carrier?: string;
   createdAt: string;
 }
 

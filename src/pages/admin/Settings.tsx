@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { getStoreSetting, updateStoreSetting } from "@/lib/data/repository";
 import { checkShippoStatus, type ShippoStatus } from "@/lib/shipping/shippo";
 import type { ShippingAddress } from "@/lib/shipping/types";
+import { listPrintifyProducts } from "@/lib/printify";
 import { Button } from "@/components/ui/Button";
 
 interface StoreProfile {
@@ -70,10 +72,19 @@ export default function Settings() {
   const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
   const stripeMode = stripePublishableKey?.startsWith("pk_live_") ? "live" : stripePublishableKey?.startsWith("pk_test_") ? "test" : null;
 
+  const [printifyStatus, setPrintifyStatus] = useState<boolean | null | undefined>(undefined);
+  const [printifyProductCount, setPrintifyProductCount] = useState<number | null>(null);
+
   useEffect(() => {
     getStoreSetting<StoreProfile>("store_profile").then((v) => v && setProfile(v));
     getStoreSetting<ShippingAddress>("shippo_address_from").then((v) => v && setAddress(v));
     checkShippoStatus().then(setShippoStatus);
+    listPrintifyProducts()
+      .then((products) => {
+        setPrintifyStatus(true);
+        setPrintifyProductCount(products.length);
+      })
+      .catch(() => setPrintifyStatus(false));
   }, []);
 
   async function saveProfile() {
@@ -169,6 +180,26 @@ export default function Settings() {
             {stripeMode
               ? "Checkout collects payment via Stripe Elements. Orders are only recorded after Stripe confirms the charge server-side."
               : "No Stripe keys saved yet."}
+          </p>
+        </div>
+
+        <div className="border border-admin-border bg-admin-surface p-6">
+          <h2 className="font-serif text-lg">Fulfillment — Printify</h2>
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
+            <StatusBadge ok={printifyStatus === undefined ? null : printifyStatus} label={printifyStatus ? "Connected" : "Not connected"} />
+            {printifyStatus && (
+              <span className="text-admin-muted">
+                Shop catalog: <span className="text-admin-ink">{printifyProductCount} product{printifyProductCount === 1 ? "" : "s"}</span>
+              </span>
+            )}
+          </div>
+          <p className="mt-2 font-sans text-xs text-admin-muted">
+            Products linked to Printify are automatically submitted for printing and shipping once paid for, and
+            get tracking info back automatically once shipped. Import products from the{" "}
+            <Link to="/admin/printify" className="underline hover:text-admin-ink">
+              Printify Catalog
+            </Link>{" "}
+            page.
           </p>
         </div>
       </div>

@@ -9,6 +9,7 @@ import {
   Image as ImageIcon,
   Users,
   FileText,
+  Shirt,
   Settings as SettingsIcon,
   LogOut,
   ExternalLink,
@@ -28,6 +29,7 @@ const NAV = [
   { label: "Media", to: "/admin/media", icon: ImageIcon },
   { label: "Customers", to: "/admin/orders", icon: Users },
   { label: "Site Content", to: "/admin/content", icon: FileText },
+  { label: "Printify", to: "/admin/printify", icon: Shirt },
   { label: "Settings", to: "/admin/settings", icon: SettingsIcon },
 ];
 

@@ -31,18 +31,35 @@ export default function Orders() {
               <th className="px-5 py-3 font-medium">Customer</th>
               <th className="px-5 py-3 font-medium">Status</th>
               <th className="px-5 py-3 font-medium">Date</th>
+              <th className="px-5 py-3 font-medium">Tracking</th>
               <th className="px-5 py-3 font-medium text-right">Total</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-admin-border-soft">
             {orders?.map((o) => (
               <tr key={o.id}>
-                <td className="px-5 py-3.5 text-admin-ink">#{o.id}</td>
+                <td className="px-5 py-3.5 text-admin-ink">#{o.id.slice(0, 8)}</td>
                 <td className="px-5 py-3.5 text-admin-ink-muted">{o.customerEmail}</td>
                 <td className="px-5 py-3.5">
                   <span className={`px-2.5 py-1 text-xs uppercase tracking-wide ${STATUS_STYLES[o.status]}`}>{o.status}</span>
                 </td>
                 <td className="px-5 py-3.5 text-admin-ink-muted">{formatDate(o.createdAt)}</td>
+                <td className="px-5 py-3.5 text-admin-ink-muted">
+                  {o.trackingNumber ? (
+                    o.trackingUrl ? (
+                      <a href={o.trackingUrl} target="_blank" rel="noreferrer" className="text-olive-dark underline-offset-2 hover:underline">
+                        {o.carrier ? `${o.carrier} · ` : ""}
+                        {o.trackingNumber}
+                      </a>
+                    ) : (
+                      <span>{o.trackingNumber}</span>
+                    )
+                  ) : o.printifyOrderId ? (
+                    "Printing…"
+                  ) : (
+                    "—"
+                  )}
+                </td>
                 <td className="px-5 py-3.5 text-right text-admin-ink">{formatPrice(o.subtotal)}</td>
               </tr>
             ))}

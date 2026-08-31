@@ -163,12 +163,21 @@ interface ProductRow {
   made_to_order: boolean;
   lead_time: string | null;
   video_url: string | null;
+  printify_product_id: string | null;
+  printify_variant_id: number | null;
   active: boolean;
   featured: boolean;
   customizable: boolean;
   created_at: string;
   product_images: { id: string; url: string; alt: string; position: number }[];
-  product_variants: { id: string; name: string; option_label: string; price_modifier: number | null; in_stock: boolean }[];
+  product_variants: {
+    id: string;
+    name: string;
+    option_label: string;
+    price_modifier: number | null;
+    in_stock: boolean;
+    printify_variant_id: number | null;
+  }[];
   product_category_map: { category_slug: string }[];
 }
 
@@ -183,6 +192,7 @@ function mapProductRow(row: ProductRow, rating?: { rating: number; count: number
         optionLabel: v.option_label,
         priceModifier: v.price_modifier != null ? Number(v.price_modifier) : undefined,
         inStock: v.in_stock,
+        printifyVariantId: v.printify_variant_id ?? undefined,
       }))
     : undefined;
 
@@ -211,6 +221,8 @@ function mapProductRow(row: ProductRow, rating?: { rating: number; count: number
     stock: row.stock,
     madeToOrder: row.made_to_order,
     leadTime: row.lead_time ?? undefined,
+    printifyProductId: row.printify_product_id ?? undefined,
+    printifyVariantId: row.printify_variant_id ?? undefined,
     active: row.active,
     featured: row.featured,
     customizable: row.customizable,
@@ -410,6 +422,7 @@ async function syncProductChildren(productId: string, data: Omit<Product, "id" |
         option_label: v.optionLabel,
         price_modifier: v.priceModifier ?? null,
         in_stock: v.inStock,
+        printify_variant_id: v.printifyVariantId ?? null,
       })),
     );
   }
@@ -436,6 +449,8 @@ function productColumns(data: Partial<Omit<Product, "id" | "createdAt">>) {
     ...(data.madeToOrder !== undefined && { made_to_order: data.madeToOrder }),
     ...(data.leadTime !== undefined && { lead_time: data.leadTime || null }),
     ...(data.videoUrl !== undefined && { video_url: data.videoUrl || null }),
+    ...(data.printifyProductId !== undefined && { printify_product_id: data.printifyProductId || null }),
+    ...(data.printifyVariantId !== undefined && { printify_variant_id: data.printifyVariantId ?? null }),
     ...(data.active !== undefined && { active: data.active }),
     ...(data.featured !== undefined && { featured: data.featured }),
     ...(data.customizable !== undefined && { customizable: data.customizable }),
@@ -749,6 +764,10 @@ export async function getOrders(): Promise<Order[]> {
       customer_email: string;
       status: Order["status"];
       subtotal: number;
+      printify_order_id: string | null;
+      tracking_number: string | null;
+      tracking_url: string | null;
+      carrier: string | null;
       created_at: string;
       order_items: { id: string; product_id: string | null; product_title: string; variant: string | null; quantity: number; unit_price: number }[];
     }
@@ -768,6 +787,10 @@ export async function getOrders(): Promise<Order[]> {
         }),
       ),
       subtotal: Number(row.subtotal),
+      printifyOrderId: row.printify_order_id ?? undefined,
+      trackingNumber: row.tracking_number ?? undefined,
+      trackingUrl: row.tracking_url ?? undefined,
+      carrier: row.carrier ?? undefined,
       createdAt: row.created_at,
     }));
   }
