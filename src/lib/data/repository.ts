@@ -162,6 +162,7 @@ interface ProductRow {
   stock: number;
   made_to_order: boolean;
   lead_time: string | null;
+  video_url: string | null;
   active: boolean;
   featured: boolean;
   customizable: boolean;
@@ -196,6 +197,7 @@ function mapProductRow(row: ProductRow, rating?: { rating: number; count: number
     compareAtPrice: row.compare_at_price != null ? Number(row.compare_at_price) : undefined,
     currency: "USD",
     images,
+    videoUrl: row.video_url ?? undefined,
     variants,
     dimensions: row.dimensions ?? undefined,
     material: row.material ?? undefined,
@@ -433,6 +435,7 @@ function productColumns(data: Partial<Omit<Product, "id" | "createdAt">>) {
     ...(data.stock !== undefined && { stock: data.stock }),
     ...(data.madeToOrder !== undefined && { made_to_order: data.madeToOrder }),
     ...(data.leadTime !== undefined && { lead_time: data.leadTime || null }),
+    ...(data.videoUrl !== undefined && { video_url: data.videoUrl || null }),
     ...(data.active !== undefined && { active: data.active }),
     ...(data.featured !== undefined && { featured: data.featured }),
     ...(data.customizable !== undefined && { customizable: data.customizable }),
@@ -492,6 +495,30 @@ export async function deleteProduct(id: string): Promise<void> {
   const list = readProducts().filter((p) => p.id !== id);
   setCollection("products", list);
   return delay(undefined);
+}
+
+export const PRODUCT_VIDEO_MAX_BYTES = 20 * 1024 * 1024;
+
+/**
+ * Uploads a product's .mp4 clip to the `product-videos` Storage bucket
+ * (capped at 20MB and mp4-only, enforced by both this check and the
+ * bucket's own file_size_limit/allowed_mime_types — see 0010_product_videos.sql).
+ * In mock mode there's no real storage to persist to, so it returns an
+ * object URL — playable for this browser session, not a real upload.
+ */
+export async function uploadProductVideo(file: File): Promise<string> {
+  if (file.type !== "video/mp4") throw new Error("Only .mp4 video files are supported.");
+  if (file.size > PRODUCT_VIDEO_MAX_BYTES) throw new Error("Video is too large — the limit is 20MB.");
+
+  if (isSupabaseConfigured) {
+    const client = db();
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${safeName}`;
+    const { error } = await client.storage.from("product-videos").upload(path, file);
+    if (error) throw error;
+    return client.storage.from("product-videos").getPublicUrl(path).data.publicUrl;
+  }
+  return delay(URL.createObjectURL(file));
 }
 
 // --------------------------------------------------------------------------

@@ -52,6 +52,8 @@ export interface Product {
   compareAtPrice?: number;
   currency: "USD";
   images: ProductImage[];
+  /** A single .mp4 clip (e.g. a hand-finishing detail or a 360° turn), capped at 20MB — see ProductVideoField. */
+  videoUrl?: string;
   variants?: ProductVariant[];
   dimensions?: string;
   material?: string;

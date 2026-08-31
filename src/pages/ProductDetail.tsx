@@ -77,7 +77,7 @@ export default function ProductDetail() {
 
       <div className="container-editorial editorial-grid gap-y-12 pb-20 lg:pb-28">
         <Reveal className="col-span-4 sm:col-span-8 lg:col-span-7">
-          <Gallery images={product.images} />
+          <Gallery images={product.images} videoUrl={product.videoUrl} />
         </Reveal>
 
         <Reveal delay={100} className="col-span-4 sm:col-span-6 sm:col-start-2 lg:col-span-4 lg:col-start-9 lg:sticky lg:top-28 lg:self-start">

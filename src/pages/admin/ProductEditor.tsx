@@ -6,6 +6,7 @@ import { getProductById, getProductCategories, createProduct, updateProduct } fr
 import { slugify } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 import { ProductImagesField } from "@/components/admin/ProductImagesField";
+import { ProductVideoField } from "@/components/admin/ProductVideoField";
 import { PageLoader } from "@/components/layout/PageLoader";
 
 const EMPTY: Omit<Product, "id" | "createdAt"> = {
@@ -329,6 +330,8 @@ export default function ProductEditor() {
         </div>
 
         <ProductImagesField images={form.images} onChange={(images) => update("images", images)} />
+
+        <ProductVideoField value={form.videoUrl ?? null} onChange={(url) => update("videoUrl", url ?? undefined)} />
 
         <div className="flex flex-wrap gap-8 border-t border-admin-border pt-6">
           <label className="flex items-center gap-2.5 font-sans text-sm text-admin-ink">
