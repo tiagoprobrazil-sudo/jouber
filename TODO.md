@@ -42,7 +42,12 @@ rough priority order:
   product id Jouber hasn't imported.
 - [ ] Create Printify products from inside the Jouber admin (blueprint +
   print provider + art upload) instead of only importing ones already set
-  up on printify.com.
+  up on printify.com. **Deliberately deferred** (2026-09-01, user's
+  choice when asked) — creating products directly on printify.com and
+  importing via `/admin/printify` already works well; this would be a
+  large wizard (blueprint/print-provider picker, art upload, print-area
+  placement) for something that may not be used often. Revisit only if
+  it becomes a real workflow pain point.
 - [x] Admin view listing all orders in the connected Printify shop — done
   2026-09-01. New admin-only `printify-orders` function (same auth check
   as resend/cancel) + a reconciliation table at the bottom of
