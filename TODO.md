@@ -20,8 +20,11 @@ rough priority order:
   fake product id returns Printify's own "Not found" error) — full
   success-path testing needs a real imported product, still pending since
   the shop has none yet.
-- [ ] Manual "Resend to Printify" action on an order in the admin, for when
-  the automatic submission fails (currently silent/best-effort).
+- [x] Manual "Resend to Printify" action — done 2026-09-01. New
+  `printify-resend` function (admin-only — verified it rejects a call
+  carrying just the anon key with 401) + a button per order row in
+  `/admin/orders` that only shows once an order lacks a
+  `printify_order_id`.
 - [ ] Order cancellation support (Printify allows cancelling before
   production starts).
 - [ ] Auto-resync a Jouber product when its Printify counterpart changes —

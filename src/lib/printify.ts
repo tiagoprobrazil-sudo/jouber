@@ -43,3 +43,12 @@ export async function getPrintifyShippingCost(items: PrintifyShippingItem[], add
   if (error || !data) throw error ?? new Error("Could not get a Printify shipping quote.");
   return data.amount;
 }
+
+/** Admin-only: (re)submits an order's Printify-linked items — see printify-resend. */
+export async function resendOrderToPrintify(orderId: string): Promise<string> {
+  const { data, error } = await supabase!.functions.invoke<{ printifyOrderId: string }>("printify-resend", {
+    body: { orderId },
+  });
+  if (error || !data) throw error ?? new Error("Could not resend this order to Printify.");
+  return data.printifyOrderId;
+}

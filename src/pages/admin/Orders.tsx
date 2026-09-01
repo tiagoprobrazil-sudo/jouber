@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Order } from "@/lib/data/types";
 import { getOrders } from "@/lib/data/repository";
+import { resendOrderToPrintify } from "@/lib/printify";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 const STATUS_STYLES: Record<Order["status"], string> = {
@@ -13,10 +14,32 @@ const STATUS_STYLES: Record<Order["status"], string> = {
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[] | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [resendErrors, setResendErrors] = useState<Record<string, string>>({});
+
+  function reload() {
+    getOrders().then(setOrders);
+  }
 
   useEffect(() => {
-    getOrders().then(setOrders);
+    reload();
   }, []);
+
+  async function handleResend(order: Order) {
+    setResendingId(order.id);
+    setResendErrors((e) => ({ ...e, [order.id]: "" }));
+    try {
+      await resendOrderToPrintify(order.id);
+      reload();
+    } catch (err) {
+      setResendErrors((e) => ({
+        ...e,
+        [order.id]: err instanceof Error ? err.message : "Could not resend this order to Printify.",
+      }));
+    } finally {
+      setResendingId(null);
+    }
+  }
 
   return (
     <div>
@@ -24,7 +47,7 @@ export default function Orders() {
       <p className="mt-1 font-sans text-sm text-admin-muted">Orders placed and paid for through checkout.</p>
 
       <div className="mt-8 overflow-x-auto border border-admin-border bg-admin-surface">
-        <table className="w-full min-w-[640px] text-left font-sans text-sm">
+        <table className="w-full min-w-[760px] text-left font-sans text-sm">
           <thead className="border-b border-admin-border text-xs uppercase tracking-wide text-admin-muted">
             <tr>
               <th className="px-5 py-3 font-medium">Order</th>
@@ -33,6 +56,7 @@ export default function Orders() {
               <th className="px-5 py-3 font-medium">Date</th>
               <th className="px-5 py-3 font-medium">Tracking</th>
               <th className="px-5 py-3 font-medium text-right">Total</th>
+              <th className="px-5 py-3 font-medium text-right">Printify</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-admin-border-soft">
@@ -61,6 +85,23 @@ export default function Orders() {
                   )}
                 </td>
                 <td className="px-5 py-3.5 text-right text-admin-ink">{formatPrice(o.subtotal)}</td>
+                <td className="px-5 py-3.5 text-right">
+                  {o.printifyOrderId ? (
+                    <span className="font-sans text-xs text-admin-muted">Sent</span>
+                  ) : (
+                    <div className="flex flex-col items-end gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleResend(o)}
+                        disabled={resendingId === o.id}
+                        className="font-sans text-xs uppercase tracking-wide text-olive hover:text-olive-dark disabled:opacity-50"
+                      >
+                        {resendingId === o.id ? "Sending…" : "Resend to Printify"}
+                      </button>
+                      {resendErrors[o.id] && <span className="max-w-[200px] text-right font-sans text-[11px] text-red-700">{resendErrors[o.id]}</span>}
+                    </div>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
