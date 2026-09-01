@@ -13,6 +13,9 @@ export interface CartLine {
   shippingLengthIn?: number;
   shippingWidthIn?: number;
   shippingHeightIn?: number;
+  /** Set when this line is fulfilled by Printify (not the atelier) — routes its shipping quote to lib/printify instead of Shippo. */
+  printifyProductId?: string;
+  printifyVariantId?: number;
 }
 
 interface CartState {

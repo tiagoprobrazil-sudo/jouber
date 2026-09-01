@@ -12,10 +12,14 @@ admin dashboard buildout).
 See [[jouber-printify-integration]] memory for the full architecture. In
 rough priority order:
 
-- [ ] **Real shipping cost per Printify item** — call Printify's
-  `/orders/shipping.json` to quote actual fulfillment shipping cost instead
-  of folding Printify-fulfilled items into the Shippo-only calculation.
-  Do this before any Printify product goes live for real sales.
+- [x] **Real shipping cost per Printify item** — done 2026-09-01. Checkout
+  now splits cart lines into atelier (Shippo) vs Printify-fulfilled, quotes
+  each separately (`printify-shipping` function calling
+  `/orders/shipping.json`, "standard" tier), and combines both into the
+  total. Verified the function calls Printify's real API correctly (a
+  fake product id returns Printify's own "Not found" error) — full
+  success-path testing needs a real imported product, still pending since
+  the shop has none yet.
 - [ ] Manual "Resend to Printify" action on an order in the admin, for when
   the automatic submission fails (currently silent/best-effort).
 - [ ] Order cancellation support (Printify allows cancelling before

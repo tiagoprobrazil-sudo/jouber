@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { Lock, Info, Loader2, CheckCircle2 } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import { useCart, type CartLine } from "@/context/CartContext";
 import { SeoHead } from "@/components/layout/SeoHead";
 import { formatPrice } from "@/lib/utils/format";
 import { combineCartParcel } from "@/lib/shipping/parcel";
 import { getShippingRates } from "@/lib/shipping/shippo";
 import type { ShippingAddress, ShippingRate } from "@/lib/shipping/types";
+import { getPrintifyShippingCost } from "@/lib/printify";
 import { getStripe, isStripeConfigured, createPaymentIntent, createOrder } from "@/lib/payments/stripe";
 import { Button } from "@/components/ui/Button";
 
@@ -23,6 +24,11 @@ const EMPTY_ADDRESS: ShippingAddress = {
 
 function addressIsComplete(address: ShippingAddress): boolean {
   return Boolean(address.name && address.street1 && address.city && address.state && address.zip && address.country);
+}
+
+/** Printify items ship from the print provider's own facility, not the atelier — they get their own real shipping quote (see /admin next-step TODO) instead of being folded into the atelier's Shippo parcel. */
+function isPrintifyLine(line: CartLine): boolean {
+  return Boolean(line.printifyProductId && line.printifyVariantId);
 }
 
 function StripePaymentForm({
@@ -72,24 +78,35 @@ export default function Checkout() {
   const { lines, subtotal, clear } = useCart();
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
-  const [rates, setRates] = useState<ShippingRate[] | null>(null);
+
+  const atelierLines = lines.filter((l) => !isPrintifyLine(l));
+  const printifyLines = lines.filter(isPrintifyLine);
+  const needsShippo = atelierLines.length > 0;
+  const needsPrintifyShipping = printifyLines.length > 0;
+
+  const [quoted, setQuoted] = useState(false);
+  const [shippoRates, setShippoRates] = useState<ShippingRate[] | null>(null);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
-  const [ratesLoading, setRatesLoading] = useState(false);
-  const [ratesError, setRatesError] = useState<string | null>(null);
+  const [printifyShippingAmount, setPrintifyShippingAmount] = useState<number | null>(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [shippingError, setShippingError] = useState<string | null>(null);
 
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [piLoading, setPiLoading] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
 
-  const selectedRate = rates?.find((r) => r.id === selectedRateId) ?? null;
-  const total = subtotal + (selectedRate?.amount ?? 0);
+  const selectedRate = shippoRates?.find((r) => r.id === selectedRateId) ?? null;
+  const shippingReady = (!needsShippo || Boolean(selectedRate)) && (!needsPrintifyShipping || printifyShippingAmount != null);
+  const shippingTotal = (selectedRate?.amount ?? 0) + (printifyShippingAmount ?? 0);
+  const total = subtotal + shippingTotal;
 
-  // Once a shipping rate is chosen, start (or restart, if the rate changes)
-  // a PaymentIntent for the current total. Stripe Elements is keyed by
-  // clientSecret below, so a new one remounts the payment form cleanly.
+  // Once a full shipping quote is in (both parts if the cart has both kinds
+  // of lines), start (or restart, if the total changes) a PaymentIntent.
+  // Stripe Elements is keyed by clientSecret below, so a new one remounts
+  // the payment form cleanly.
   useEffect(() => {
-    if (!isStripeConfigured || !selectedRate || total <= 0) {
+    if (!isStripeConfigured || !shippingReady || total <= 0) {
       setClientSecret(null);
       return;
     }
@@ -101,7 +118,7 @@ export default function Checkout() {
       currency: "usd",
       email,
       subtotal,
-      shippingAmount: selectedRate.amount,
+      shippingAmount: shippingTotal,
       shippingAddress: address,
       items: lines.map((l) => ({
         productSlug: l.productSlug,
@@ -124,7 +141,7 @@ export default function Checkout() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedRateId, total]);
+  }, [shippingReady, total]);
 
   if (completedOrderId) {
     return (
@@ -146,24 +163,43 @@ export default function Checkout() {
 
   function updateAddress<K extends keyof ShippingAddress>(field: K, value: ShippingAddress[K]) {
     setAddress((prev) => ({ ...prev, [field]: value }));
-    // Address changed since the last quote — the old rates no longer apply.
-    setRates(null);
+    // Address changed since the last quote — the old quote no longer applies.
+    setQuoted(false);
+    setShippoRates(null);
     setSelectedRateId(null);
+    setPrintifyShippingAmount(null);
   }
 
-  async function handleGetRates() {
-    setRatesLoading(true);
-    setRatesError(null);
+  async function handleGetShipping() {
+    setShippingLoading(true);
+    setShippingError(null);
     try {
-      const parcel = combineCartParcel(lines);
-      const result = await getShippingRates(address, parcel);
-      setRates(result);
-      setSelectedRateId(result[0]?.id ?? null);
-      if (result.length === 0) setRatesError("No shipping rates were available for this address.");
-    } catch {
-      setRatesError("Couldn't fetch shipping rates. Please check the address and try again.");
+      const tasks: Promise<unknown>[] = [];
+
+      if (needsShippo) {
+        tasks.push(
+          getShippingRates(address, combineCartParcel(atelierLines)).then((result) => {
+            setShippoRates(result);
+            setSelectedRateId(result[0]?.id ?? null);
+            if (result.length === 0) throw new Error("No atelier shipping rates were available for this address.");
+          }),
+        );
+      }
+      if (needsPrintifyShipping) {
+        const items = printifyLines.map((l) => ({
+          productId: l.printifyProductId!,
+          variantId: l.printifyVariantId!,
+          quantity: l.quantity,
+        }));
+        tasks.push(getPrintifyShippingCost(items, address).then(setPrintifyShippingAmount));
+      }
+
+      await Promise.all(tasks);
+      setQuoted(true);
+    } catch (err) {
+      setShippingError(err instanceof Error ? err.message : "Couldn't fetch shipping rates. Please check the address and try again.");
     } finally {
-      setRatesLoading(false);
+      setShippingLoading(false);
     }
   }
 
@@ -292,52 +328,62 @@ export default function Checkout() {
             <fieldset className="space-y-4 border-t border-stone-dark pt-8">
               <legend className="mb-1 font-serif text-xl">Shipping Method</legend>
 
-              {!rates && (
+              {!quoted && (
                 <button
                   type="button"
-                  onClick={handleGetRates}
-                  disabled={!addressIsComplete(address) || ratesLoading}
+                  onClick={handleGetShipping}
+                  disabled={!addressIsComplete(address) || shippingLoading}
                   className="flex items-center gap-2 border border-charcoal px-6 py-3 font-sans text-[13px] uppercase tracking-[0.14em] text-charcoal transition-colors hover:bg-charcoal hover:text-ivory disabled:cursor-not-allowed disabled:border-stone-dark disabled:text-warmgray"
                 >
-                  {ratesLoading && <Loader2 size={14} className="animate-spin" />}
-                  {ratesLoading ? "Getting rates..." : "Get shipping rates"}
+                  {shippingLoading && <Loader2 size={14} className="animate-spin" />}
+                  {shippingLoading ? "Getting rates..." : "Get shipping rates"}
                 </button>
               )}
 
-              {ratesError && <p className="font-sans text-sm text-red-700">{ratesError}</p>}
+              {shippingError && <p className="font-sans text-sm text-red-700">{shippingError}</p>}
 
-              {rates && rates.length > 0 && (
+              {quoted && (
                 <div className="space-y-2">
-                  {rates.map((rate) => (
-                    <label
-                      key={rate.id}
-                      className={`flex cursor-pointer items-center justify-between gap-4 border px-4 py-3 font-sans text-sm transition-colors ${
-                        selectedRateId === rate.id ? "border-charcoal bg-ivory-dim" : "border-stone-dark"
-                      }`}
-                    >
-                      <span className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="shipping-rate"
-                          checked={selectedRateId === rate.id}
-                          onChange={() => setSelectedRateId(rate.id)}
-                          className="h-4 w-4 accent-olive"
-                        />
-                        <span>
-                          <span className="block text-charcoal">
-                            {rate.provider} — {rate.service}
+                  {needsShippo && shippoRates && (
+                    <>
+                      {shippoRates.map((rate) => (
+                        <label
+                          key={rate.id}
+                          className={`flex cursor-pointer items-center justify-between gap-4 border px-4 py-3 font-sans text-sm transition-colors ${
+                            selectedRateId === rate.id ? "border-charcoal bg-ivory-dim" : "border-stone-dark"
+                          }`}
+                        >
+                          <span className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="shipping-rate"
+                              checked={selectedRateId === rate.id}
+                              onChange={() => setSelectedRateId(rate.id)}
+                              className="h-4 w-4 accent-olive"
+                            />
+                            <span>
+                              <span className="block text-charcoal">
+                                {rate.provider} — {rate.service}
+                              </span>
+                              {rate.estimatedDays != null && (
+                                <span className="block text-xs text-warmgray">~{rate.estimatedDays} business days</span>
+                              )}
+                            </span>
                           </span>
-                          {rate.estimatedDays != null && (
-                            <span className="block text-xs text-warmgray">~{rate.estimatedDays} business days</span>
-                          )}
-                        </span>
-                      </span>
-                      <span className="text-charcoal">{formatPrice(rate.amount)}</span>
-                    </label>
-                  ))}
+                          <span className="text-charcoal">{formatPrice(rate.amount)}</span>
+                        </label>
+                      ))}
+                    </>
+                  )}
+                  {needsPrintifyShipping && printifyShippingAmount != null && (
+                    <div className="flex items-center justify-between gap-4 border border-stone-dark px-4 py-3 font-sans text-sm">
+                      <span className="text-charcoal">Printify items — standard shipping</span>
+                      <span className="text-charcoal">{formatPrice(printifyShippingAmount)}</span>
+                    </div>
+                  )}
                   <button
                     type="button"
-                    onClick={handleGetRates}
+                    onClick={handleGetShipping}
                     className="font-sans text-xs uppercase tracking-wide text-warmgray underline-offset-2 hover:text-charcoal hover:underline"
                   >
                     Refresh rates
@@ -354,7 +400,7 @@ export default function Checkout() {
                   <Info size={17} strokeWidth={1.5} className="mt-0.5 shrink-0 text-warmgray" />
                   <p>Payment processing is not yet connected for this preview — no order is placed by this form today.</p>
                 </div>
-              ) : !selectedRate ? (
+              ) : !shippingReady ? (
                 <p className="font-sans text-sm text-warmgray">Choose a shipping method above to continue to payment.</p>
               ) : piLoading || !clientSecret ? (
                 <p className="flex items-center gap-2 font-sans text-sm text-warmgray">
@@ -402,10 +448,23 @@ export default function Checkout() {
                 <span className="text-warmgray">Subtotal</span>
                 <span className="text-charcoal">{formatPrice(subtotal)}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-warmgray">Shipping</span>
-                <span className="text-charcoal">{selectedRate ? formatPrice(selectedRate.amount) : "—"}</span>
-              </div>
+              {needsShippo && needsPrintifyShipping ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-warmgray">Atelier shipping</span>
+                    <span className="text-charcoal">{selectedRate ? formatPrice(selectedRate.amount) : "—"}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-warmgray">Printify shipping</span>
+                    <span className="text-charcoal">{printifyShippingAmount != null ? formatPrice(printifyShippingAmount) : "—"}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span className="text-warmgray">Shipping</span>
+                  <span className="text-charcoal">{shippingReady ? formatPrice(shippingTotal) : "—"}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between border-t border-stone-dark pt-2 text-base">
                 <span className="text-charcoal">Total</span>
                 <span className="text-charcoal">{formatPrice(total)}</span>

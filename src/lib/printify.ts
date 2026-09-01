@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import type { ShippingAddress } from "@/lib/shipping/types";
 
 export interface PrintifyCatalogProduct {
   id: string;
@@ -26,4 +27,19 @@ export async function importPrintifyProduct(printifyProductId: string): Promise<
   });
   if (error || !data) throw error ?? new Error("Could not import this product.");
   return data;
+}
+
+export interface PrintifyShippingItem {
+  productId: string;
+  variantId: number;
+  quantity: number;
+}
+
+/** Quotes real shipping cost for Printify-fulfilled cart lines via printify-shipping — see Checkout.tsx. */
+export async function getPrintifyShippingCost(items: PrintifyShippingItem[], address: ShippingAddress): Promise<number> {
+  const { data, error } = await supabase!.functions.invoke<{ amount: number }>("printify-shipping", {
+    body: { items, address },
+  });
+  if (error || !data) throw error ?? new Error("Could not get a Printify shipping quote.");
+  return data.amount;
 }
