@@ -25,8 +25,13 @@ rough priority order:
   carrying just the anon key with 401) + a button per order row in
   `/admin/orders` that only shows once an order lacks a
   `printify_order_id`.
-- [ ] Order cancellation support (Printify allows cancelling before
-  production starts).
+- [x] Order cancellation support — done 2026-09-01. New
+  `printify-cancel-order` function (same admin-only check as resend —
+  verified it rejects a call carrying just the anon key with 401) + a
+  "Cancel" button in `/admin/orders`, shown only while an order is
+  sent to Printify but not yet cancelled/refunded. Printify only allows
+  this before production starts; a later-stage order surfaces
+  Printify's own rejection to the admin instead of failing silently.
 - [ ] Auto-resync a Jouber product when its Printify counterpart changes —
   register a `product:updated` webhook instead of relying on the admin
   clicking "Re-sync" in `/admin/printify`.

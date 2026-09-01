@@ -52,3 +52,11 @@ export async function resendOrderToPrintify(orderId: string): Promise<string> {
   if (error || !data) throw error ?? new Error("Could not resend this order to Printify.");
   return data.printifyOrderId;
 }
+
+/** Admin-only: cancels an order's Printify submission — only works before it enters production. See printify-cancel-order. */
+export async function cancelPrintifyOrder(orderId: string): Promise<void> {
+  const { data, error } = await supabase!.functions.invoke<{ ok: true }>("printify-cancel-order", {
+    body: { orderId },
+  });
+  if (error || !data?.ok) throw error ?? new Error("Could not cancel this order.");
+}
