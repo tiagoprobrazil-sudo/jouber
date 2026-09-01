@@ -43,5 +43,7 @@ rough priority order:
 - [ ] Create Printify products from inside the Jouber admin (blueprint +
   print provider + art upload) instead of only importing ones already set
   up on printify.com.
-- [ ] Admin view listing all orders in the connected Printify shop (not
-  just ones Jouber itself created), for reconciliation.
+- [x] Admin view listing all orders in the connected Printify shop — done
+  2026-09-01. New admin-only `printify-orders` function (same auth check
+  as resend/cancel) + a reconciliation table at the bottom of
+  `/admin/printify` (customer, status, items, total, tracking link).

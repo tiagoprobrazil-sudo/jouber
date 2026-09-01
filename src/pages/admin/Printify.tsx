@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CheckCircle2, RefreshCw, ExternalLink } from "lucide-react";
-import { listPrintifyProducts, importPrintifyProduct, type PrintifyCatalogProduct } from "@/lib/printify";
+import { listPrintifyProducts, importPrintifyProduct, listPrintifyOrders, type PrintifyCatalogProduct, type PrintifyOrderSummary } from "@/lib/printify";
+import { formatDate, formatPrice } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 
 export default function Printify() {
@@ -10,6 +11,9 @@ export default function Printify() {
   const [importingId, setImportingId] = useState<string | null>(null);
   const [importedSlug, setImportedSlug] = useState<Record<string, string>>({});
 
+  const [orders, setOrders] = useState<PrintifyOrderSummary[] | null>(null);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+
   function reload() {
     setError(null);
     listPrintifyProducts()
@@ -17,8 +21,16 @@ export default function Printify() {
       .catch(() => setError("Could not load the Printify catalog — check the connection in Settings."));
   }
 
+  function reloadOrders() {
+    setOrdersError(null);
+    listPrintifyOrders()
+      .then(setOrders)
+      .catch(() => setOrdersError("Could not load Printify orders."));
+  }
+
   useEffect(() => {
     reload();
+    reloadOrders();
   }, []);
 
   async function handleImport(product: PrintifyCatalogProduct) {
@@ -110,6 +122,68 @@ export default function Printify() {
         Manage products on Printify
         <ExternalLink size={12} strokeWidth={1.5} />
       </a>
+
+      <div className="mt-12 border-t border-admin-border pt-8">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="font-serif text-xl text-admin-ink">All Printify Orders</h2>
+            <p className="mt-1 font-sans text-xs text-admin-muted">
+              Every order in the shop, for reconciliation — not just ones placed through Jouber's checkout.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={reloadOrders}
+            className="flex items-center gap-1.5 font-sans text-xs uppercase tracking-wide text-admin-muted hover:text-admin-ink"
+          >
+            <RefreshCw size={13} strokeWidth={1.5} />
+            Refresh
+          </button>
+        </div>
+
+        {ordersError && <p className="mb-4 font-sans text-sm text-red-700">{ordersError}</p>}
+
+        {orders === null ? (
+          <p className="font-sans text-sm text-admin-muted">Loading…</p>
+        ) : orders.length === 0 ? (
+          <p className="font-sans text-sm text-admin-muted">No orders in the Printify shop yet.</p>
+        ) : (
+          <div className="overflow-x-auto border border-admin-border bg-admin-surface">
+            <table className="w-full min-w-[640px] text-left font-sans text-sm">
+              <thead className="border-b border-admin-border text-xs uppercase tracking-wide text-admin-muted">
+                <tr>
+                  <th className="px-5 py-3 font-medium">Order</th>
+                  <th className="px-5 py-3 font-medium">Customer</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                  <th className="px-5 py-3 font-medium">Date</th>
+                  <th className="px-5 py-3 font-medium text-right">Items</th>
+                  <th className="px-5 py-3 font-medium text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-admin-border-soft">
+                {orders.map((o) => (
+                  <tr key={o.id}>
+                    <td className="px-5 py-3.5 text-admin-ink">
+                      {o.trackingUrl ? (
+                        <a href={o.trackingUrl} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
+                          #{o.id.slice(0, 8)}
+                        </a>
+                      ) : (
+                        `#${o.id.slice(0, 8)}`
+                      )}
+                    </td>
+                    <td className="px-5 py-3.5 text-admin-ink-muted">{o.customerName ?? "—"}</td>
+                    <td className="px-5 py-3.5 text-admin-ink-muted">{o.status}</td>
+                    <td className="px-5 py-3.5 text-admin-ink-muted">{formatDate(o.createdAt)}</td>
+                    <td className="px-5 py-3.5 text-right text-admin-ink-muted">{o.itemCount}</td>
+                    <td className="px-5 py-3.5 text-right text-admin-ink">{formatPrice(o.totalCents / 100)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

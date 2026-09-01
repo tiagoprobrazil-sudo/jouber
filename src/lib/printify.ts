@@ -60,3 +60,22 @@ export async function cancelPrintifyOrder(orderId: string): Promise<void> {
   });
   if (error || !data?.ok) throw error ?? new Error("Could not cancel this order.");
 }
+
+export interface PrintifyOrderSummary {
+  id: string;
+  status: string;
+  totalCents: number;
+  createdAt: string;
+  customerName: string | null;
+  itemCount: number;
+  trackingUrl: string | null;
+}
+
+/** Admin-only: lists every order in the connected Printify shop, for reconciliation — see printify-orders. */
+export async function listPrintifyOrders(): Promise<PrintifyOrderSummary[]> {
+  const { data, error } = await supabase!.functions.invoke<{ orders: PrintifyOrderSummary[] }>("printify-orders", {
+    method: "GET",
+  });
+  if (error || !data) throw error ?? new Error("Could not load Printify orders.");
+  return data.orders;
+}
