@@ -32,9 +32,14 @@ rough priority order:
   sent to Printify but not yet cancelled/refunded. Printify only allows
   this before production starts; a later-stage order surfaces
   Printify's own rejection to the admin instead of failing silently.
-- [ ] Auto-resync a Jouber product when its Printify counterpart changes —
-  register a `product:updated` webhook instead of relying on the admin
-  clicking "Re-sync" in `/admin/printify`.
+- [x] Auto-resync a Jouber product when its Printify counterpart changes
+  — done 2026-09-01. Registered a `product:updated` webhook; extracted
+  the import/sync logic into `_shared/printifySync.ts` (used by both the
+  explicit `/admin/printify` import button and the webhook). The webhook
+  only re-syncs products already imported into Jouber — it never
+  auto-creates a new draft product from a background event, that's still
+  an explicit admin action. Verified the webhook gracefully no-ops for a
+  product id Jouber hasn't imported.
 - [ ] Create Printify products from inside the Jouber admin (blueprint +
   print provider + art upload) instead of only importing ones already set
   up on printify.com.
