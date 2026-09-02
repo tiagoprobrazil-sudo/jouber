@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
-import { Truck, RotateCcw, Sparkles } from "lucide-react";
-import type { Product, ProductVariant } from "@/lib/data/types";
-import { getProductBySlug, getRelatedProducts } from "@/lib/data/repository";
+import { Truck, RotateCcw, Sparkles, ShieldCheck } from "lucide-react";
+import type { Product, ProductVariant, Review } from "@/lib/data/types";
+import { getProductBySlug, getRelatedProducts, getProductReviews } from "@/lib/data/repository";
+import { submitReview } from "@/lib/reviews";
 import { useCart } from "@/context/CartContext";
 import { SeoHead } from "@/components/layout/SeoHead";
 import { PageLoader } from "@/components/layout/PageLoader";
 import { Gallery } from "@/components/product/Gallery";
 import { VariantPicker } from "@/components/product/VariantPicker";
+import { ReviewForm } from "@/components/product/ReviewForm";
 import { Price } from "@/components/ui/Price";
 import { RatingStars } from "@/components/ui/RatingStars";
 import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import { Button } from "@/components/ui/Button";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { Reveal } from "@/components/ui/Reveal";
+import { formatDate } from "@/lib/utils/format";
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -21,6 +24,8 @@ export default function ProductDetail() {
   const [related, setRelated] = useState<Product[] | null>(null);
   const [variant, setVariant] = useState<ProductVariant | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [reviews, setReviews] = useState<Review[] | null>(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
   const { addItem, openDrawer } = useCart();
 
   useEffect(() => {
@@ -28,6 +33,8 @@ export default function ProductDetail() {
     setProduct(undefined);
     setQuantity(1);
     setVariant(null);
+    setReviews(null);
+    setShowReviewForm(false);
     getProductBySlug(slug).then((p) => {
       setProduct(p);
       if (p?.variants?.length) setVariant(p.variants[0]);
@@ -36,6 +43,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (product) getRelatedProducts(product, 4).then(setRelated);
+    if (product) getProductReviews(product.id, product.slug).then(setReviews);
   }, [product]);
 
   if (product === undefined) return <PageLoader />;
@@ -174,6 +182,57 @@ export default function ProductDetail() {
           </div>
         </Reveal>
       </div>
+
+      <section className="border-t border-stone-dark py-16">
+        <div className="container-editorial max-w-2xl">
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif text-2xl text-charcoal">Reviews</h2>
+            {!showReviewForm && (
+              <button
+                type="button"
+                onClick={() => setShowReviewForm(true)}
+                className="font-sans text-xs uppercase tracking-wide text-olive underline-offset-2 hover:underline"
+              >
+                Write a review
+              </button>
+            )}
+          </div>
+
+          {showReviewForm && (
+            <div className="mt-6 border border-stone-dark bg-ivory-dim p-5">
+              <ReviewForm
+                showEmail
+                onSubmit={(values) => submitReview({ ...values, productSlug: product.slug })}
+              />
+            </div>
+          )}
+
+          <div className="mt-8 space-y-6">
+            {reviews === null ? (
+              <p className="font-sans text-sm text-warmgray">Loading reviews…</p>
+            ) : reviews.length === 0 ? (
+              <p className="font-sans text-sm text-warmgray">No reviews yet — be the first to share yours.</p>
+            ) : (
+              reviews.map((r) => (
+                <div key={r.id} className="border-b border-stone pb-6">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <RatingStars rating={r.rating} />
+                    <span className="font-serif text-sm text-charcoal">{r.author}</span>
+                    {r.isVerifiedPurchase && (
+                      <span className="flex items-center gap-1 font-sans text-[11px] uppercase tracking-wide text-olive">
+                        <ShieldCheck size={12} strokeWidth={1.5} />
+                        Verified purchase
+                      </span>
+                    )}
+                    <span className="font-sans text-xs text-warmgray">{formatDate(r.createdAt)}</span>
+                  </div>
+                  <p className="mt-2 font-sans text-sm leading-relaxed text-warmgray-dark">{r.text}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
 
       {related && related.length > 0 && (
         <section className="border-t border-stone-dark bg-ivory-dim py-20">

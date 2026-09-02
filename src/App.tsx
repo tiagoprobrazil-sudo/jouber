@@ -15,6 +15,7 @@ const JournalPost = lazy(() => import("@/pages/JournalPost"));
 const Contact = lazy(() => import("@/pages/Contact"));
 const Cart = lazy(() => import("@/pages/Cart"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
+const Review = lazy(() => import("@/pages/Review"));
 const PolicyPage = lazy(() => import("@/pages/PolicyPage"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 
@@ -29,6 +30,7 @@ const AdminOrders = lazy(() => import("@/pages/admin/Orders"));
 const AdminCategories = lazy(() => import("@/pages/admin/Categories"));
 const AdminContent = lazy(() => import("@/pages/admin/Content"));
 const AdminPrintify = lazy(() => import("@/pages/admin/Printify"));
+const AdminReviews = lazy(() => import("@/pages/admin/Reviews"));
 const AdminSettings = lazy(() => import("@/pages/admin/Settings"));
 
 export default function App() {
@@ -48,6 +50,7 @@ export default function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/review/:token" element={<Review />} />
             <Route path="/shipping" element={<PolicyPage topic="shipping" />} />
             <Route path="/returns" element={<PolicyPage topic="returns" />} />
             <Route path="/privacy" element={<PolicyPage topic="privacy" />} />
@@ -76,6 +79,7 @@ export default function App() {
             <Route path="categories" element={<AdminCategories />} />
             <Route path="content" element={<AdminContent />} />
             <Route path="printify" element={<AdminPrintify />} />
+            <Route path="reviews" element={<AdminReviews />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 

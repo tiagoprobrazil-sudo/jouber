@@ -128,6 +128,8 @@ export interface Post {
   updatedAt: string;
 }
 
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
 export interface Review {
   id: ID;
   author: string;
@@ -135,6 +137,11 @@ export interface Review {
   rating: number;
   text: string;
   productSlug?: string;
+  /** Set once an admin has approved/rejected it — see /admin/reviews. Only "approved" reviews are ever shown publicly. */
+  status: ReviewStatus;
+  /** True when submitted through a purchase-linked review-request link, rather than the open form on the product page. */
+  isVerifiedPurchase: boolean;
+  email?: string;
   createdAt: string;
 }
 

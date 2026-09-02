@@ -10,6 +10,8 @@ export const reviews: Review[] = [
     rating: 5,
     text: "Lovely spiritual art and energy.",
     productSlug: "our-lady-of-aparecida-10-inch-pearl-gold-statue",
+    status: "approved",
+    isVerifiedPurchase: true,
     createdAt: "2026-04-02",
   },
   {
@@ -18,6 +20,8 @@ export const reviews: Review[] = [
     rating: 5,
     text: "Beautiful and great quality. Will definitely recommend.",
     productSlug: "our-lady-of-aparecida-11-inch-metallic-blue-statue",
+    status: "approved",
+    isVerifiedPurchase: true,
     createdAt: "2026-05-14",
   },
   {
@@ -27,6 +31,8 @@ export const reviews: Review[] = [
     rating: 5,
     text: "Trabalho maravilhoso e atendimento excelente! Super indico.",
     productSlug: "our-lady-of-aparecida-shrine-box",
+    status: "approved",
+    isVerifiedPurchase: true,
     createdAt: "2026-05-29",
   },
   {
@@ -35,6 +41,8 @@ export const reviews: Review[] = [
     rating: 5,
     text: "She is absolutely gorgeous, a work of art quite literally. I've been dying to have her since I ever saw her at the age 17, and I'm 25 now — I'm just really happy.",
     productSlug: "our-lady-of-aparecida-11-inch-pink-statue",
+    status: "approved",
+    isVerifiedPurchase: true,
     createdAt: "2026-06-03",
   },
   {
@@ -43,6 +51,8 @@ export const reviews: Review[] = [
     rating: 5,
     text: "Great statue, very well crafted, beautiful.",
     productSlug: "archangel-michael-slaying-the-dragon-canvas",
+    status: "approved",
+    isVerifiedPurchase: true,
     createdAt: "2026-06-20",
   },
   {
@@ -51,6 +61,8 @@ export const reviews: Review[] = [
     rating: 5,
     text: "Beautiful, my mom loved it! Came very well protected as well.",
     productSlug: "blessed-virgin-mary-shrine-box",
+    status: "approved",
+    isVerifiedPurchase: true,
     createdAt: "2026-07-01",
   },
 ];

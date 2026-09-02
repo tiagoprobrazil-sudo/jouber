@@ -75,6 +75,9 @@ export default function Settings() {
   const [printifyStatus, setPrintifyStatus] = useState<boolean | null | undefined>(undefined);
   const [printifyProductCount, setPrintifyProductCount] = useState<number | null>(null);
 
+  const [reviewDelayDays, setReviewDelayDays] = useState(7);
+  const [savingReviewDelay, setSavingReviewDelay] = useState(false);
+
   useEffect(() => {
     getStoreSetting<StoreProfile>("store_profile").then((v) => v && setProfile(v));
     getStoreSetting<ShippingAddress>("shippo_address_from").then((v) => v && setAddress(v));
@@ -85,6 +88,7 @@ export default function Settings() {
         setPrintifyProductCount(products.length);
       })
       .catch(() => setPrintifyStatus(false));
+    getStoreSetting<number>("review_request_delay_days").then((v) => v != null && setReviewDelayDays(v));
   }, []);
 
   async function saveProfile() {
@@ -98,6 +102,12 @@ export default function Settings() {
     await updateStoreSetting("shippo_address_from", address);
     setShippoStatus(await checkShippoStatus());
     setSavingAddress(false);
+  }
+
+  async function saveReviewDelay() {
+    setSavingReviewDelay(true);
+    await updateStoreSetting("review_request_delay_days", reviewDelayDays);
+    setSavingReviewDelay(false);
   }
 
   return (
@@ -200,6 +210,38 @@ export default function Settings() {
               Printify Catalog
             </Link>{" "}
             page.
+          </p>
+        </div>
+
+        <div className="border border-admin-border bg-admin-surface p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif text-lg">Reviews</h2>
+            <Button size="sm" disabled={savingReviewDelay} onClick={saveReviewDelay}>
+              {savingReviewDelay ? "Saving…" : "Save"}
+            </Button>
+          </div>
+          <p className="mt-2 font-sans text-sm text-admin-ink-muted">
+            New reviews (from the site or the emailed request below) wait in{" "}
+            <Link to="/admin/reviews" className="underline hover:text-admin-ink">
+              Reviews
+            </Link>{" "}
+            for approval before they show publicly.
+          </p>
+          <div className="mt-4 max-w-[16rem]">
+            <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">
+              Send a review request this many days after purchase
+            </label>
+            <input
+              type="number"
+              min={1}
+              value={reviewDelayDays}
+              onChange={(e) => setReviewDelayDays(Number(e.target.value))}
+              className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+            />
+          </div>
+          <p className="mt-2 font-sans text-xs text-admin-muted">
+            Runs automatically once a day. Emails go out via Resend — set the RESEND_API_KEY secret (and FROM_EMAIL
+            once ateliersaintsebastian.com is verified in Resend) for this to actually send.
           </p>
         </div>
       </div>

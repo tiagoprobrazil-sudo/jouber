@@ -21,6 +21,7 @@ import type {
   PostFilters,
   PostImage,
   Review,
+  ReviewStatus,
   Order,
   OrderItem,
   MediaItem,
@@ -236,7 +237,7 @@ function mapProductRow(row: ProductRow, rating?: { rating: number; count: number
 async function computeRatings(productIds: string[]): Promise<Map<string, { rating: number; count: number }>> {
   const result = new Map<string, { rating: number; count: number }>();
   if (productIds.length === 0) return result;
-  const { data, error } = await db().from("reviews").select("product_id, rating").in("product_id", productIds);
+  const { data, error } = await db().from("reviews").select("product_id, rating").eq("status", "approved").in("product_id", productIds);
   if (error || !data) return result;
   const byProduct = new Map<string, number[]>();
   for (const r of data as { product_id: string | null; rating: number }[]) {
@@ -725,26 +726,89 @@ export async function deletePost(id: string): Promise<void> {
 // Reviews
 // --------------------------------------------------------------------------
 
+interface ReviewRow {
+  id: string;
+  product_id: string | null;
+  author: string;
+  location: string | null;
+  rating: number;
+  body: string;
+  status: ReviewStatus;
+  is_verified_purchase: boolean;
+  email: string | null;
+  created_at: string;
+}
+
+function mapReviewRow(r: ReviewRow): Review {
+  return {
+    id: r.id,
+    author: r.author,
+    location: r.location ?? undefined,
+    rating: r.rating,
+    text: r.body,
+    productSlug: r.product_id ?? undefined,
+    status: r.status,
+    isVerifiedPurchase: r.is_verified_purchase,
+    email: r.email ?? undefined,
+    createdAt: r.created_at,
+  };
+}
+
+/** Public-facing reviews (approved only) — homepage/product display. */
 export async function getReviews(limit?: number): Promise<Review[]> {
   if (isSupabaseConfigured) {
-    let query = db().from("reviews").select("*").order("created_at", { ascending: false });
+    let query = db().from("reviews").select("*").eq("status", "approved").order("created_at", { ascending: false });
     if (limit) query = query.limit(limit);
     const { data, error } = await query;
     if (error) throw error;
-    return (data as { id: string; product_id: string | null; author: string; location: string | null; rating: number; body: string; created_at: string }[]).map(
-      (r) => ({
-        id: r.id,
-        author: r.author,
-        location: r.location ?? undefined,
-        rating: r.rating,
-        text: r.body,
-        productSlug: r.product_id ?? undefined,
-        createdAt: r.created_at,
-      }),
-    );
+    return (data as ReviewRow[]).map(mapReviewRow);
   }
-  const list = getCollection("reviews", seedReviews);
+  const list = getCollection("reviews", seedReviews).filter((r) => r.status === "approved");
   return delay(limit ? list.slice(0, limit) : list);
+}
+
+/**
+ * Approved reviews for one product's detail page. Takes both id and slug
+ * because the mock/localStorage seed data links reviews by slug while the
+ * real `reviews.product_id` column is a UUID — same split every other
+ * product-linked lookup in this file has between the two modes.
+ */
+export async function getProductReviews(productId: string, productSlug: string): Promise<Review[]> {
+  if (isSupabaseConfigured) {
+    const { data, error } = await db()
+      .from("reviews")
+      .select("*")
+      .eq("status", "approved")
+      .eq("product_id", productId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data as ReviewRow[]).map(mapReviewRow);
+  }
+  const list = getCollection("reviews", seedReviews).filter((r) => r.status === "approved" && r.productSlug === productSlug);
+  return delay(list);
+}
+
+/** Admin: every review awaiting a moderation decision. */
+export async function getPendingReviews(): Promise<Review[]> {
+  if (isSupabaseConfigured) {
+    const { data, error } = await db().from("reviews").select("*").eq("status", "pending").order("created_at", { ascending: true });
+    if (error) throw error;
+    return (data as ReviewRow[]).map(mapReviewRow);
+  }
+  const list = getCollection("reviews", seedReviews).filter((r) => r.status === "pending");
+  return delay(list);
+}
+
+/** Admin: approve or reject a pending review. */
+export async function moderateReview(id: string, status: "approved" | "rejected"): Promise<void> {
+  if (isSupabaseConfigured) {
+    const { error } = await db().from("reviews").update({ status }).eq("id", id);
+    if (error) throw error;
+    return;
+  }
+  const list = getCollection("reviews", seedReviews).map((r) => (r.id === id ? { ...r, status } : r));
+  setCollection("reviews", list);
+  return delay(undefined);
 }
 
 // --------------------------------------------------------------------------
