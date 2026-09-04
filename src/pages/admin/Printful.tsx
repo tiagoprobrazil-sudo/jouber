@@ -9,7 +9,7 @@ export default function Printful() {
   const [products, setProducts] = useState<PrintfulCatalogProduct[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [importingId, setImportingId] = useState<number | null>(null);
-  const [importedSlug, setImportedSlug] = useState<Record<number, string>>({});
+  const [importedProductId, setImportedProductId] = useState<Record<number, string>>({});
 
   const [orders, setOrders] = useState<PrintfulOrderSummary[] | null>(null);
   const [ordersError, setOrdersError] = useState<string | null>(null);
@@ -36,8 +36,8 @@ export default function Printful() {
   async function handleImport(product: PrintfulCatalogProduct) {
     setImportingId(product.id);
     try {
-      const { slug } = await importPrintfulProduct(product.id);
-      setImportedSlug((s) => ({ ...s, [product.id]: slug }));
+      const { productId } = await importPrintfulProduct(product.id);
+      setImportedProductId((s) => ({ ...s, [product.id]: productId }));
       reload();
     } catch {
       setError(`Could not import "${product.title}". Try again in a moment.`);
@@ -84,7 +84,7 @@ export default function Printful() {
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {products.map((p) => {
-            const slug = importedSlug[p.id];
+            const productId = importedProductId[p.id] ?? p.productId ?? undefined;
             return (
               <div key={p.id} className="border border-admin-border bg-admin-surface p-3">
                 <div className="aspect-square overflow-hidden bg-admin-border-soft">
@@ -94,9 +94,9 @@ export default function Printful() {
                 <p className="font-sans text-xs text-admin-muted">
                   {p.variantCount} variant{p.variantCount === 1 ? "" : "s"}
                 </p>
-                {slug ? (
+                {productId ? (
                   <Link
-                    to={`/admin/products`}
+                    to={`/admin/products/${productId}`}
                     className="mt-3 flex items-center justify-center gap-1.5 border border-olive px-3 py-2 font-sans text-xs uppercase tracking-wide text-olive hover:bg-olive hover:text-ivory"
                   >
                     <CheckCircle2 size={13} strokeWidth={1.5} />

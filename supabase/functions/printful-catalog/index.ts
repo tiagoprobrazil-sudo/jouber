@@ -56,8 +56,8 @@ Deno.serve(async (req) => {
       if (offset >= total) break;
     }
 
-    const { data: linked } = await admin.from("products").select("printful_product_id").not("printful_product_id", "is", null);
-    const importedIds = new Set((linked ?? []).map((p) => p.printful_product_id));
+    const { data: linked } = await admin.from("products").select("id, printful_product_id").not("printful_product_id", "is", null);
+    const importedProductIds = new Map((linked ?? []).map((p) => [p.printful_product_id, p.id]));
 
     return jsonResponse({
       products: products.map((p) => ({
@@ -65,7 +65,10 @@ Deno.serve(async (req) => {
         title: p.name,
         image: p.thumbnail_url ?? null,
         variantCount: p.variants,
-        imported: importedIds.has(p.id),
+        imported: importedProductIds.has(p.id),
+        // Lets the admin UI link straight to the edit page across a page
+        // refresh, not just right after clicking Import this session.
+        productId: importedProductIds.get(p.id) ?? null,
       })),
     });
   }

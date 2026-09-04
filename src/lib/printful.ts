@@ -7,6 +7,8 @@ export interface PrintfulCatalogProduct {
   image: string | null;
   variantCount: number;
   imported: boolean;
+  /** Jouber's product id, when already imported — lets the admin UI link straight to the edit page. */
+  productId: string | null;
 }
 
 export const isPrintfulClientReady = isSupabaseConfigured;
