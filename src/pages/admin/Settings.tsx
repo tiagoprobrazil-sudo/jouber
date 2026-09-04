@@ -6,7 +6,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { getStoreSetting, updateStoreSetting } from "@/lib/data/repository";
 import { checkShippoStatus, type ShippoStatus } from "@/lib/shipping/shippo";
 import type { ShippingAddress } from "@/lib/shipping/types";
-import { listPrintifyProducts } from "@/lib/printify";
+import { listPrintfulProducts } from "@/lib/printful";
 import { Button } from "@/components/ui/Button";
 
 interface StoreProfile {
@@ -72,8 +72,8 @@ export default function Settings() {
   const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
   const stripeMode = stripePublishableKey?.startsWith("pk_live_") ? "live" : stripePublishableKey?.startsWith("pk_test_") ? "test" : null;
 
-  const [printifyStatus, setPrintifyStatus] = useState<boolean | null | undefined>(undefined);
-  const [printifyProductCount, setPrintifyProductCount] = useState<number | null>(null);
+  const [printfulStatus, setPrintfulStatus] = useState<boolean | null | undefined>(undefined);
+  const [printfulProductCount, setPrintfulProductCount] = useState<number | null>(null);
 
   const [reviewDelayDays, setReviewDelayDays] = useState(7);
   const [savingReviewDelay, setSavingReviewDelay] = useState(false);
@@ -82,12 +82,12 @@ export default function Settings() {
     getStoreSetting<StoreProfile>("store_profile").then((v) => v && setProfile(v));
     getStoreSetting<ShippingAddress>("shippo_address_from").then((v) => v && setAddress(v));
     checkShippoStatus().then(setShippoStatus);
-    listPrintifyProducts()
+    listPrintfulProducts()
       .then((products) => {
-        setPrintifyStatus(true);
-        setPrintifyProductCount(products.length);
+        setPrintfulStatus(true);
+        setPrintfulProductCount(products.length);
       })
-      .catch(() => setPrintifyStatus(false));
+      .catch(() => setPrintfulStatus(false));
     getStoreSetting<number>("review_request_delay_days").then((v) => v != null && setReviewDelayDays(v));
   }, []);
 
@@ -194,20 +194,20 @@ export default function Settings() {
         </div>
 
         <div className="border border-admin-border bg-admin-surface p-6">
-          <h2 className="font-serif text-lg">Fulfillment — Printify</h2>
+          <h2 className="font-serif text-lg">Fulfillment — Printful</h2>
           <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 font-sans text-sm">
-            <StatusBadge ok={printifyStatus === undefined ? null : printifyStatus} label={printifyStatus ? "Connected" : "Not connected"} />
-            {printifyStatus && (
+            <StatusBadge ok={printfulStatus === undefined ? null : printfulStatus} label={printfulStatus ? "Connected" : "Not connected"} />
+            {printfulStatus && (
               <span className="text-admin-muted">
-                Shop catalog: <span className="text-admin-ink">{printifyProductCount} product{printifyProductCount === 1 ? "" : "s"}</span>
+                Store catalog: <span className="text-admin-ink">{printfulProductCount} product{printfulProductCount === 1 ? "" : "s"}</span>
               </span>
             )}
           </div>
           <p className="mt-2 font-sans text-xs text-admin-muted">
-            Products linked to Printify are automatically submitted for printing and shipping once paid for, and
+            Products linked to Printful are automatically submitted for printing and shipping once paid for, and
             get tracking info back automatically once shipped. Import products from the{" "}
-            <Link to="/admin/printify" className="underline hover:text-admin-ink">
-              Printify Catalog
+            <Link to="/admin/printful" className="underline hover:text-admin-ink">
+              Printful Catalog
             </Link>{" "}
             page.
           </p>

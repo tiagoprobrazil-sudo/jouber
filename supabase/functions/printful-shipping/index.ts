@@ -1,17 +1,17 @@
-// Supabase Edge Function: printify-shipping
+// Supabase Edge Function: printful-shipping
 //
-// Quotes real shipping cost for the Printify-fulfilled lines in a cart via
-// Printify's own /orders/shipping.json — those items ship from the print
+// Quotes real shipping cost for the Printful-fulfilled lines in a cart via
+// Printful's own /shipping-rates — those items ship from the print
 // provider's facility, not the atelier, so Shippo's atelier-address quote
 // (see shipping-rates) doesn't apply to them. Checkout combines this with
-// the Shippo quote for any non-Printify lines in the same cart.
+// the Shippo quote for any non-Printful lines in the same cart.
 //
-// Deploy with: supabase functions deploy printify-shipping
+// Deploy with: supabase functions deploy printful-shipping
 //
-// Request body:  { items: [{ productId, variantId, quantity }], address: ShippingAddress }
-// Response:      { amount: number } (dollars, "standard" tier)
+// Request body:  { items: [{ variantId, quantity }], address: ShippingAddress }
+// Response:      { amount: number } (dollars, "STANDARD" rate)
 
-import { getPrintifyConfig, printifyFetch } from "../_shared/printify.ts";
+import { getPrintfulConfig, printfulFetch, type PrintfulEnvelope } from "../_shared/printful.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +24,6 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 interface Item {
-  productId: string;
   variantId: number;
   quantity: number;
 }
@@ -41,12 +40,19 @@ interface Address {
   phone?: string;
 }
 
+interface PrintfulRate {
+  id: string;
+  name: string;
+  rate: string;
+  currency: string;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
 
-  const config = getPrintifyConfig();
-  if (!config) return jsonResponse({ error: "Printify is not configured." }, 501);
+  const config = getPrintfulConfig();
+  if (!config) return jsonResponse({ error: "Printful is not configured." }, 501);
 
   let body: { items?: Item[]; address?: Address };
   try {
@@ -61,34 +67,28 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "address is missing required fields" }, 400);
   }
 
-  const [firstName, ...rest] = (address.name ?? "").split(" ");
-
-  const res = await printifyFetch(config, `/shops/${config.shopId}/orders/shipping.json`, {
+  const res = await printfulFetch(config, "/shipping-rates", {
     method: "POST",
     body: JSON.stringify({
-      line_items: items.map((i) => ({ product_id: i.productId, variant_id: i.variantId, quantity: i.quantity })),
-      address_to: {
-        first_name: firstName || "Customer",
-        last_name: rest.join(" ") || "-",
-        email: address.email || "",
-        phone: address.phone || "",
+      recipient: {
         address1: address.street1,
         address2: address.street2 || "",
         city: address.city,
-        region: address.state || "",
+        state_code: address.state || "",
+        country_code: address.country,
         zip: address.zip,
-        country: address.country,
       },
+      items: items.map((i) => ({ sync_variant_id: i.variantId, quantity: i.quantity })),
     }),
   });
 
   if (!res.ok) {
-    return jsonResponse({ error: "Could not get a Printify shipping quote", detail: await res.text() }, 502);
+    return jsonResponse({ error: "Could not get a Printful shipping quote", detail: await res.text() }, 502);
   }
-  const costs = await res.json();
-  if (typeof costs.standard !== "number") {
-    return jsonResponse({ error: "Printify did not return a standard shipping cost" }, 502);
-  }
+  const envelope = (await res.json()) as PrintfulEnvelope<PrintfulRate[]>;
+  const rates = envelope.result ?? [];
+  const standard = rates.find((r) => r.id === "STANDARD") ?? rates[0];
+  if (!standard) return jsonResponse({ error: "Printful did not return any shipping rates" }, 502);
 
-  return jsonResponse({ amount: costs.standard / 100 });
+  return jsonResponse({ amount: Number(standard.rate) });
 });

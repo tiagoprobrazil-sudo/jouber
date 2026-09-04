@@ -39,8 +39,8 @@ export interface ProductVariant {
   optionLabel: string;
   priceModifier?: number;
   inStock: boolean;
-  /** Links this variant to a Printify variant id for automatic fulfillment — see lib/printify. */
-  printifyVariantId?: number;
+  /** Links this variant to a Printful sync variant id for automatic fulfillment — see lib/printful. */
+  printfulVariantId?: number;
 }
 
 export interface Product {
@@ -77,15 +77,15 @@ export interface Product {
   madeToOrder?: boolean;
   leadTime?: string;
   /**
-   * Printify fulfillment linkage. `printifyProductId` identifies the
-   * product in the connected Printify shop; `printifyVariantId` is only
+   * Printful fulfillment linkage. `printfulProductId` identifies the sync
+   * product in the connected Printful store; `printfulVariantId` is only
    * used when the product has no local `variants` (single-variant item) —
-   * when it does, each ProductVariant carries its own printifyVariantId
-   * instead. A product with `printifyProductId` set is automatically
-   * submitted to Printify for fulfillment when ordered — see lib/printify.
+   * when it does, each ProductVariant carries its own printfulVariantId
+   * instead. A product with `printfulProductId` set is automatically
+   * submitted to Printful for fulfillment when ordered — see lib/printful.
    */
-  printifyProductId?: string;
-  printifyVariantId?: number;
+  printfulProductId?: number;
+  printfulVariantId?: number;
   active: boolean;
   featured: boolean;
   customizable: boolean;
@@ -168,8 +168,8 @@ export interface Order {
   status: OrderStatus;
   items: OrderItem[];
   subtotal: number;
-  /** Set once this order's Printify-fulfilled items were submitted for printing — see lib/printify. */
-  printifyOrderId?: string;
+  /** Set once this order's Printful-fulfilled items were submitted for printing — see lib/printful. */
+  printfulOrderId?: number;
   trackingNumber?: string;
   trackingUrl?: string;
   carrier?: string;

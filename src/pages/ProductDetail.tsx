@@ -63,8 +63,8 @@ export default function ProductDetail() {
         shippingLengthIn: product.shippingLengthIn,
         shippingWidthIn: product.shippingWidthIn,
         shippingHeightIn: product.shippingHeightIn,
-        printifyProductId: product.printifyProductId,
-        printifyVariantId: variant?.printifyVariantId ?? product.printifyVariantId,
+        printfulProductId: product.printfulProductId,
+        printfulVariantId: variant?.printfulVariantId ?? product.printfulVariantId,
       },
       { openDrawer: true },
     );

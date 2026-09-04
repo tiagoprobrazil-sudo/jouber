@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Order } from "@/lib/data/types";
 import { getOrders } from "@/lib/data/repository";
-import { resendOrderToPrintify, cancelPrintifyOrder } from "@/lib/printify";
+import { resendOrderToPrintful, cancelPrintfulOrder } from "@/lib/printful";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 
 const STATUS_STYLES: Record<Order["status"], string> = {
@@ -29,21 +29,21 @@ export default function Orders() {
     setPendingAction({ id: order.id, action: "resend" });
     setActionErrors((e) => ({ ...e, [order.id]: "" }));
     try {
-      await resendOrderToPrintify(order.id);
+      await resendOrderToPrintful(order.id);
       reload();
     } catch (err) {
-      setActionErrors((e) => ({ ...e, [order.id]: err instanceof Error ? err.message : "Could not resend this order to Printify." }));
+      setActionErrors((e) => ({ ...e, [order.id]: err instanceof Error ? err.message : "Could not resend this order to Printful." }));
     } finally {
       setPendingAction(null);
     }
   }
 
   async function handleCancel(order: Order) {
-    if (!window.confirm("Cancel this order's Printify submission? This only works if it hasn't entered production yet.")) return;
+    if (!window.confirm("Cancel this order's Printful submission? This only works if it hasn't entered production yet.")) return;
     setPendingAction({ id: order.id, action: "cancel" });
     setActionErrors((e) => ({ ...e, [order.id]: "" }));
     try {
-      await cancelPrintifyOrder(order.id);
+      await cancelPrintfulOrder(order.id);
       reload();
     } catch (err) {
       setActionErrors((e) => ({ ...e, [order.id]: err instanceof Error ? err.message : "Could not cancel this order." }));
@@ -67,13 +67,13 @@ export default function Orders() {
               <th className="px-5 py-3 font-medium">Date</th>
               <th className="px-5 py-3 font-medium">Tracking</th>
               <th className="px-5 py-3 font-medium text-right">Total</th>
-              <th className="px-5 py-3 font-medium text-right">Printify</th>
+              <th className="px-5 py-3 font-medium text-right">Printful</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-admin-border-soft">
             {orders?.map((o) => {
               const busy = pendingAction?.id === o.id ? pendingAction.action : null;
-              const cancellable = o.printifyOrderId && o.status !== "cancelled" && o.status !== "refunded";
+              const cancellable = o.printfulOrderId && o.status !== "cancelled" && o.status !== "refunded";
               return (
                 <tr key={o.id}>
                   <td className="px-5 py-3.5 text-admin-ink">#{o.id.slice(0, 8)}</td>
@@ -92,7 +92,7 @@ export default function Orders() {
                       ) : (
                         <span>{o.trackingNumber}</span>
                       )
-                    ) : o.printifyOrderId ? (
+                    ) : o.printfulOrderId ? (
                       "Printing…"
                     ) : (
                       "—"
@@ -101,14 +101,14 @@ export default function Orders() {
                   <td className="px-5 py-3.5 text-right text-admin-ink">{formatPrice(o.subtotal)}</td>
                   <td className="px-5 py-3.5 text-right">
                     <div className="flex flex-col items-end gap-1">
-                      {!o.printifyOrderId ? (
+                      {!o.printfulOrderId ? (
                         <button
                           type="button"
                           onClick={() => handleResend(o)}
                           disabled={busy === "resend"}
                           className="font-sans text-xs uppercase tracking-wide text-olive hover:text-olive-dark disabled:opacity-50"
                         >
-                          {busy === "resend" ? "Sending…" : "Resend to Printify"}
+                          {busy === "resend" ? "Sending…" : "Resend to Printful"}
                         </button>
                       ) : cancellable ? (
                         <div className="flex items-center gap-3">

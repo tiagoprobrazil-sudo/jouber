@@ -3,7 +3,7 @@
 // Runs daily via pg_cron (see 0012_reviews.sql's `net.http_post` job) —
 // not meant to be called by anyone else, so it checks a shared secret
 // (X-Cron-Secret) instead of a Supabase session, the same idea as
-// stripe-webhook/printify-webhook checking a signature/trust boundary
+// stripe-webhook/printful-webhook checking a signature/trust boundary
 // appropriate to their own caller.
 //
 // For every order_item that's old enough (orders.created_at + the

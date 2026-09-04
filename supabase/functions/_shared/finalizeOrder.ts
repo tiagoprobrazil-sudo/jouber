@@ -8,7 +8,7 @@
 // checked below before insert).
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
-import { getPrintifyConfig, printifyFetch } from "./printify.ts";
+import { getPrintfulConfig, printfulFetch, type PrintfulEnvelope, type PrintfulOrder } from "./printful.ts";
 
 interface OrderItemInput {
   productSlug: string;
@@ -22,21 +22,21 @@ interface ProductForOrder {
   id: string;
   slug: string;
   stock: number;
-  printify_product_id: string | null;
-  printify_variant_id: number | null;
-  product_variants: { name: string; printify_variant_id: number | null }[];
+  printful_product_id: number | null;
+  printful_variant_id: number | null;
+  product_variants: { name: string; printful_variant_id: number | null }[];
 }
 
 /**
- * Submits the Printify-linked items in this order (a product must have
- * `printify_product_id` set — see the admin Printify catalog import) as a
- * single Printify order and sends it straight to production. Best-effort:
- * a failure here does not fail the surrounding order creation — the
+ * Submits the Printful-linked items in this order (a product must have
+ * `printful_product_id` set — see the admin Printful catalog import) as a
+ * single Printful order and confirms it for production. Best-effort: a
+ * failure here does not fail the surrounding order creation — the
  * customer was already charged and needs their order recorded regardless;
- * a Printify submission failure just means the order stays without
- * printify_order_id/tracking and needs a manual look.
+ * a Printful submission failure just means the order stays without
+ * printful_order_id/tracking and needs a manual look.
  */
-async function submitToPrintify(
+async function submitToPrintful(
   admin: SupabaseClient,
   orderId: string,
   items: OrderItemInput[],
@@ -44,17 +44,17 @@ async function submitToPrintify(
   shippingAddress: Record<string, unknown> | null,
   email: string,
 ): Promise<void> {
-  const config = getPrintifyConfig();
+  const config = getPrintfulConfig();
   if (!config || !shippingAddress) return;
 
   const lineItems = items.flatMap((item) => {
     const product = bySlug.get(item.productSlug);
-    if (!product?.printify_product_id) return [];
+    if (!product?.printful_product_id) return [];
     const variantId = item.variant
-      ? product.product_variants.find((v) => v.name === item.variant)?.printify_variant_id
-      : product.printify_variant_id;
+      ? product.product_variants.find((v) => v.name === item.variant)?.printful_variant_id
+      : product.printful_variant_id;
     if (!variantId) return [];
-    return [{ product_id: product.printify_product_id, variant_id: variantId, quantity: item.quantity }];
+    return [{ sync_variant_id: variantId, quantity: item.quantity }];
   });
   if (lineItems.length === 0) return;
 
@@ -68,43 +68,38 @@ async function submitToPrintify(
     country?: string;
     phone?: string;
   };
-  const [firstName, ...rest] = (address.name ?? "").split(" ");
 
   try {
-    const createRes = await printifyFetch(config, `/shops/${config.shopId}/orders.json`, {
+    const createRes = await printfulFetch(config, "/orders", {
       method: "POST",
       body: JSON.stringify({
         external_id: orderId,
-        line_items: lineItems,
-        shipping_method: 1, // standard — Printify's default economy/standard option for the print provider
-        send_shipping_notification: false, // Jouber sends its own confirmation; avoid a duplicate from Printify
-        address_to: {
-          first_name: firstName || "Customer",
-          last_name: rest.join(" ") || "-",
-          email,
-          phone: address.phone || "",
+        recipient: {
+          name: address.name || "Customer",
           address1: address.street1 ?? "",
           address2: address.street2 ?? "",
           city: address.city ?? "",
-          region: address.state ?? "",
+          state_code: address.state ?? "",
+          country_code: address.country ?? "",
           zip: address.zip ?? "",
-          country: address.country ?? "",
+          phone: address.phone || "",
+          email,
         },
+        items: lineItems,
       }),
     });
     if (!createRes.ok) {
-      console.error("Printify order creation failed:", await createRes.text());
+      console.error("Printful order creation failed:", await createRes.text());
       return;
     }
-    const printifyOrder = await createRes.json();
+    const created = ((await createRes.json()) as PrintfulEnvelope<PrintfulOrder>).result;
 
-    await printifyFetch(config, `/shops/${config.shopId}/orders/${printifyOrder.id}/send_to_production.json`, {
-      method: "POST",
-    });
+    const confirmRes = await printfulFetch(config, `/orders/${created.id}/confirm`, { method: "POST" });
+    if (!confirmRes.ok) console.error("Printful order confirm failed:", await confirmRes.text());
 
-    await admin.from("orders").update({ printify_order_id: printifyOrder.id }).eq("id", orderId);
+    await admin.from("orders").update({ printful_order_id: created.id }).eq("id", orderId);
   } catch (err) {
-    console.error("Printify submission threw:", err);
+    console.error("Printful submission threw:", err);
   }
 }
 
@@ -159,7 +154,7 @@ export async function finalizeOrder(
   const slugs = [...new Set(items.map((i) => i.productSlug))];
   const { data: products } = await admin
     .from("products")
-    .select("id, slug, stock, printify_product_id, printify_variant_id, product_variants(name, printify_variant_id)")
+    .select("id, slug, stock, printful_product_id, printful_variant_id, product_variants(name, printful_variant_id)")
     .in("slug", slugs);
   const bySlug = new Map(((products ?? []) as unknown as ProductForOrder[]).map((p) => [p.slug, p]));
 
@@ -187,7 +182,7 @@ export async function finalizeOrder(
 
   await admin.from("checkout_drafts").delete().eq("payment_intent_id", paymentIntentId);
 
-  await submitToPrintify(admin, order.id, items, bySlug, draft.shipping_address, draft.email);
+  await submitToPrintful(admin, order.id, items, bySlug, draft.shipping_address, draft.email);
 
   return { ok: true, orderId: order.id };
 }

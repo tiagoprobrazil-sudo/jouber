@@ -29,7 +29,7 @@ const AdminMedia = lazy(() => import("@/pages/admin/Media"));
 const AdminOrders = lazy(() => import("@/pages/admin/Orders"));
 const AdminCategories = lazy(() => import("@/pages/admin/Categories"));
 const AdminContent = lazy(() => import("@/pages/admin/Content"));
-const AdminPrintify = lazy(() => import("@/pages/admin/Printify"));
+const AdminPrintful = lazy(() => import("@/pages/admin/Printful"));
 const AdminReviews = lazy(() => import("@/pages/admin/Reviews"));
 const AdminSettings = lazy(() => import("@/pages/admin/Settings"));
 
@@ -78,7 +78,7 @@ export default function App() {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="content" element={<AdminContent />} />
-            <Route path="printify" element={<AdminPrintify />} />
+            <Route path="printful" element={<AdminPrintful />} />
             <Route path="reviews" element={<AdminReviews />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>

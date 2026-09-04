@@ -1,19 +1,19 @@
-// Supabase Edge Function: printify-cancel-order
+// Supabase Edge Function: printful-cancel-order
 //
-// Admin-only (same session/profiles.role check as printify-resend — this
+// Admin-only (same session/profiles.role check as printful-resend — this
 // can affect a real print job, not just read data). Cancels an order's
-// Printify submission via POST /orders/{id}/cancel.json. Printify only
-// allows this before the order enters production/ships — a later-stage
-// order will come back as a Printify API error, surfaced to the admin
-// rather than silently failing.
+// Printful submission via DELETE /orders/{id}. Printful only allows this
+// while the order is still draft/pending (before it enters production) —
+// a later-stage order will come back as a Printful API error, surfaced to
+// the admin rather than silently failing.
 //
-// Deploy with: supabase functions deploy printify-cancel-order
+// Deploy with: supabase functions deploy printful-cancel-order
 //
 // Request body:  { orderId: string }  (Jouber's order id)
 // Response:      { ok: true } | { error: string }
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { getPrintifyConfig, printifyFetch } from "../_shared/printify.ts";
+import { getPrintfulConfig, printfulFetch } from "../_shared/printful.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -29,11 +29,11 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
 
-  const printify = getPrintifyConfig();
+  const printful = getPrintfulConfig();
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!printify || !supabaseUrl || !anonKey || !serviceRoleKey) return jsonResponse({ error: "Not configured" }, 501);
+  if (!printful || !supabaseUrl || !anonKey || !serviceRoleKey) return jsonResponse({ error: "Not configured" }, 501);
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) return jsonResponse({ error: "Not authenticated" }, 401);
@@ -53,18 +53,16 @@ Deno.serve(async (req) => {
   }
   if (!body.orderId) return jsonResponse({ error: "orderId is required" }, 400);
 
-  const { data: order } = await admin.from("orders").select("id, printify_order_id").eq("id", body.orderId).maybeSingle();
+  const { data: order } = await admin.from("orders").select("id, printful_order_id").eq("id", body.orderId).maybeSingle();
   if (!order) return jsonResponse({ error: "Order not found" }, 404);
-  if (!order.printify_order_id) return jsonResponse({ error: "This order was never sent to Printify." }, 400);
+  if (!order.printful_order_id) return jsonResponse({ error: "This order was never sent to Printful." }, 400);
 
-  const cancelRes = await printifyFetch(printify, `/shops/${printify.shopId}/orders/${order.printify_order_id}/cancel.json`, {
-    method: "POST",
-  });
+  const cancelRes = await printfulFetch(printful, `/orders/${order.printful_order_id}`, { method: "DELETE" });
   if (!cancelRes.ok) {
     const detail = await cancelRes.text();
     // The common real-world case: it's already too far along (in
-    // production/shipped) for Printify to accept a cancellation.
-    return jsonResponse({ error: "Printify could not cancel this order — it may already be in production or shipped.", detail }, 502);
+    // production/shipped) for Printful to accept a cancellation.
+    return jsonResponse({ error: "Printful could not cancel this order — it may already be in production or shipped.", detail }, 502);
   }
 
   await admin.from("orders").update({ status: "cancelled" }).eq("id", order.id);

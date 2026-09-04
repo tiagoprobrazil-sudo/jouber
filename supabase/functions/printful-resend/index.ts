@@ -1,8 +1,8 @@
-// Supabase Edge Function: printify-resend
+// Supabase Edge Function: printful-resend
 //
-// Admin-only. Manually (re)submits an order's Printify-linked items —
-// for when the automatic submission in finalizeOrder failed silently
-// (best-effort by design, since a Printify failure must never fail the
+// Admin-only. Manually (re)submits an order's Printful-linked items — for
+// when the automatic submission in finalizeOrder failed silently
+// (best-effort by design, since a Printful failure must never fail the
 // underlying paid order) and nobody noticed until reviewing /admin/orders.
 //
 // Unlike every other function in this project, this one is NOT meant to
@@ -11,13 +11,13 @@
 // (checked against profiles.role, same rule the database's own RLS
 // policies use for admin-only writes).
 //
-// Deploy with: supabase functions deploy printify-resend
+// Deploy with: supabase functions deploy printful-resend
 //
 // Request body:  { orderId: string }
-// Response:      { printifyOrderId: string } | { error: string }
+// Response:      { printfulOrderId: number } | { error: string }
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { getPrintifyConfig, printifyFetch } from "../_shared/printify.ts";
+import { getPrintfulConfig, printfulFetch, type PrintfulEnvelope, type PrintfulOrder } from "../_shared/printful.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -33,11 +33,11 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS_HEADERS });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
 
-  const printify = getPrintifyConfig();
+  const printful = getPrintfulConfig();
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!printify || !supabaseUrl || !anonKey || !serviceRoleKey) return jsonResponse({ error: "Not configured" }, 501);
+  if (!printful || !supabaseUrl || !anonKey || !serviceRoleKey) return jsonResponse({ error: "Not configured" }, 501);
 
   // Verify the caller is a logged-in admin — this endpoint can create a
   // real, billable print order, unlike the checkout functions.
@@ -61,11 +61,11 @@ Deno.serve(async (req) => {
 
   const { data: order } = await admin
     .from("orders")
-    .select("id, customer_email, shipping_address, printify_order_id")
+    .select("id, customer_email, shipping_address, printful_order_id")
     .eq("id", body.orderId)
     .maybeSingle();
   if (!order) return jsonResponse({ error: "Order not found" }, 404);
-  if (order.printify_order_id) return jsonResponse({ printifyOrderId: order.printify_order_id });
+  if (order.printful_order_id) return jsonResponse({ printfulOrderId: order.printful_order_id });
 
   const { data: items } = await admin
     .from("order_items")
@@ -76,21 +76,21 @@ Deno.serve(async (req) => {
   const productIds = [...new Set(items.map((i) => i.product_id).filter(Boolean))] as string[];
   const { data: products } = await admin
     .from("products")
-    .select("id, printify_product_id, printify_variant_id, product_variants(name, printify_variant_id)")
+    .select("id, printful_product_id, printful_variant_id, product_variants(name, printful_variant_id)")
     .in("id", productIds);
   const byId = new Map((products ?? []).map((p) => [p.id, p]));
 
   const lineItems = items.flatMap((item) => {
     const product = item.product_id ? byId.get(item.product_id) : undefined;
-    if (!product?.printify_product_id) return [];
+    if (!product?.printful_product_id) return [];
     const variantId = item.variant
-      ? product.product_variants.find((v: { name: string; printify_variant_id: number | null }) => v.name === item.variant)
-          ?.printify_variant_id
-      : product.printify_variant_id;
+      ? product.product_variants.find((v: { name: string; printful_variant_id: number | null }) => v.name === item.variant)
+          ?.printful_variant_id
+      : product.printful_variant_id;
     if (!variantId) return [];
-    return [{ product_id: product.printify_product_id, variant_id: variantId, quantity: item.quantity }];
+    return [{ sync_variant_id: variantId, quantity: item.quantity }];
   });
-  if (lineItems.length === 0) return jsonResponse({ error: "No items in this order are linked to Printify." }, 400);
+  if (lineItems.length === 0) return jsonResponse({ error: "No items in this order are linked to Printful." }, 400);
 
   const address = (order.shipping_address ?? {}) as {
     name?: string;
@@ -102,36 +102,34 @@ Deno.serve(async (req) => {
     country?: string;
     phone?: string;
   };
-  const [firstName, ...rest] = (address.name ?? "").split(" ");
 
-  const createRes = await printifyFetch(printify, `/shops/${printify.shopId}/orders.json`, {
+  const createRes = await printfulFetch(printful, "/orders", {
     method: "POST",
     body: JSON.stringify({
       external_id: order.id,
-      line_items: lineItems,
-      shipping_method: 1,
-      send_shipping_notification: false,
-      address_to: {
-        first_name: firstName || "Customer",
-        last_name: rest.join(" ") || "-",
-        email: order.customer_email,
-        phone: address.phone || "",
+      recipient: {
+        name: address.name || "Customer",
         address1: address.street1 ?? "",
         address2: address.street2 ?? "",
         city: address.city ?? "",
-        region: address.state ?? "",
+        state_code: address.state ?? "",
+        country_code: address.country ?? "",
         zip: address.zip ?? "",
-        country: address.country ?? "",
+        phone: address.phone || "",
+        email: order.customer_email,
       },
+      items: lineItems,
     }),
   });
   if (!createRes.ok) {
-    return jsonResponse({ error: "Printify order creation failed", detail: await createRes.text() }, 502);
+    return jsonResponse({ error: "Printful order creation failed", detail: await createRes.text() }, 502);
   }
-  const printifyOrder = await createRes.json();
+  const created = ((await createRes.json()) as PrintfulEnvelope<PrintfulOrder>).result;
 
-  await printifyFetch(printify, `/shops/${printify.shopId}/orders/${printifyOrder.id}/send_to_production.json`, { method: "POST" });
-  await admin.from("orders").update({ printify_order_id: printifyOrder.id }).eq("id", order.id);
+  const confirmRes = await printfulFetch(printful, `/orders/${created.id}/confirm`, { method: "POST" });
+  if (!confirmRes.ok) console.error("Printful order confirm failed:", await confirmRes.text());
 
-  return jsonResponse({ printifyOrderId: printifyOrder.id });
+  await admin.from("orders").update({ printful_order_id: created.id }).eq("id", order.id);
+
+  return jsonResponse({ printfulOrderId: created.id });
 });

@@ -27,6 +27,7 @@ import type {
   MediaItem,
   NewsletterSubscriber,
 } from "@/lib/data/types";
+import { optimizeImageForUpload } from "@/lib/utils/optimizeImage";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { products as seedProducts } from "@/lib/data/mock/products";
 import { posts as seedPosts } from "@/lib/data/mock/posts";
@@ -164,8 +165,8 @@ interface ProductRow {
   made_to_order: boolean;
   lead_time: string | null;
   video_url: string | null;
-  printify_product_id: string | null;
-  printify_variant_id: number | null;
+  printful_product_id: number | null;
+  printful_variant_id: number | null;
   active: boolean;
   featured: boolean;
   customizable: boolean;
@@ -177,7 +178,7 @@ interface ProductRow {
     option_label: string;
     price_modifier: number | null;
     in_stock: boolean;
-    printify_variant_id: number | null;
+    printful_variant_id: number | null;
   }[];
   product_category_map: { category_slug: string }[];
 }
@@ -193,7 +194,7 @@ function mapProductRow(row: ProductRow, rating?: { rating: number; count: number
         optionLabel: v.option_label,
         priceModifier: v.price_modifier != null ? Number(v.price_modifier) : undefined,
         inStock: v.in_stock,
-        printifyVariantId: v.printify_variant_id ?? undefined,
+        printfulVariantId: v.printful_variant_id ?? undefined,
       }))
     : undefined;
 
@@ -222,8 +223,8 @@ function mapProductRow(row: ProductRow, rating?: { rating: number; count: number
     stock: row.stock,
     madeToOrder: row.made_to_order,
     leadTime: row.lead_time ?? undefined,
-    printifyProductId: row.printify_product_id ?? undefined,
-    printifyVariantId: row.printify_variant_id ?? undefined,
+    printfulProductId: row.printful_product_id ?? undefined,
+    printfulVariantId: row.printful_variant_id ?? undefined,
     active: row.active,
     featured: row.featured,
     customizable: row.customizable,
@@ -423,7 +424,7 @@ async function syncProductChildren(productId: string, data: Omit<Product, "id" |
         option_label: v.optionLabel,
         price_modifier: v.priceModifier ?? null,
         in_stock: v.inStock,
-        printify_variant_id: v.printifyVariantId ?? null,
+        printful_variant_id: v.printfulVariantId ?? null,
       })),
     );
   }
@@ -450,8 +451,8 @@ function productColumns(data: Partial<Omit<Product, "id" | "createdAt">>) {
     ...(data.madeToOrder !== undefined && { made_to_order: data.madeToOrder }),
     ...(data.leadTime !== undefined && { lead_time: data.leadTime || null }),
     ...(data.videoUrl !== undefined && { video_url: data.videoUrl || null }),
-    ...(data.printifyProductId !== undefined && { printify_product_id: data.printifyProductId || null }),
-    ...(data.printifyVariantId !== undefined && { printify_variant_id: data.printifyVariantId ?? null }),
+    ...(data.printfulProductId !== undefined && { printful_product_id: data.printfulProductId ?? null }),
+    ...(data.printfulVariantId !== undefined && { printful_variant_id: data.printfulVariantId ?? null }),
     ...(data.active !== undefined && { active: data.active }),
     ...(data.featured !== undefined && { featured: data.featured }),
     ...(data.customizable !== undefined && { customizable: data.customizable }),
@@ -828,7 +829,7 @@ export async function getOrders(): Promise<Order[]> {
       customer_email: string;
       status: Order["status"];
       subtotal: number;
-      printify_order_id: string | null;
+      printful_order_id: number | null;
       tracking_number: string | null;
       tracking_url: string | null;
       carrier: string | null;
@@ -851,7 +852,7 @@ export async function getOrders(): Promise<Order[]> {
         }),
       ),
       subtotal: Number(row.subtotal),
-      printifyOrderId: row.printify_order_id ?? undefined,
+      printfulOrderId: row.printful_order_id ?? undefined,
       trackingNumber: row.tracking_number ?? undefined,
       trackingUrl: row.tracking_url ?? undefined,
       carrier: row.carrier ?? undefined,
@@ -882,16 +883,20 @@ export async function getMediaLibrary(): Promise<MediaItem[]> {
 
 /** Uploads to the `media` Storage bucket and records it in the `media` table (real Supabase), or reads the File into a data URL for the local mock. */
 export async function uploadMedia(file: File, usedIn: MediaItem["usedIn"] = "unassigned"): Promise<MediaItem> {
+  const optimizedFile = await optimizeImageForUpload(file);
   if (isSupabaseConfigured) {
     const client = db();
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+    const safeName = optimizedFile.name.replace(/[^a-zA-Z0-9._-]/g, "-");
     const path = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${safeName}`;
-    const { error: uploadError } = await client.storage.from("media").upload(path, file);
+    const { error: uploadError } = await client.storage.from("media").upload(path, optimizedFile, {
+      cacheControl: "31536000",
+      contentType: "image/webp",
+    });
     if (uploadError) throw uploadError;
     const { data: publicUrl } = client.storage.from("media").getPublicUrl(path);
     const { data: row, error } = await client
       .from("media")
-      .insert({ url: publicUrl.publicUrl, name: file.name, used_in: usedIn })
+      .insert({ url: publicUrl.publicUrl, name: optimizedFile.name, used_in: usedIn })
       .select()
       .single();
     if (error) throw error;
@@ -901,10 +906,10 @@ export async function uploadMedia(file: File, usedIn: MediaItem["usedIn"] = "una
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(optimizedFile);
   });
   const list = getCollection<MediaItem>("media", seedMedia);
-  const created: MediaItem = { id: nextId("media"), url, name: file.name, usedIn, createdAt: new Date().toISOString() };
+  const created: MediaItem = { id: nextId("media"), url, name: optimizedFile.name, usedIn, createdAt: new Date().toISOString() };
   setCollection("media", [created, ...list]);
   return delay(created);
 }

@@ -8,7 +8,7 @@ import { formatPrice } from "@/lib/utils/format";
 import { combineCartParcel } from "@/lib/shipping/parcel";
 import { getShippingRates } from "@/lib/shipping/shippo";
 import type { ShippingAddress, ShippingRate } from "@/lib/shipping/types";
-import { getPrintifyShippingCost } from "@/lib/printify";
+import { getPrintfulShippingCost } from "@/lib/printful";
 import { getStripe, isStripeConfigured, createPaymentIntent, createOrder } from "@/lib/payments/stripe";
 import { Button } from "@/components/ui/Button";
 
@@ -26,9 +26,9 @@ function addressIsComplete(address: ShippingAddress): boolean {
   return Boolean(address.name && address.street1 && address.city && address.state && address.zip && address.country);
 }
 
-/** Printify items ship from the print provider's own facility, not the atelier — they get their own real shipping quote (see /admin next-step TODO) instead of being folded into the atelier's Shippo parcel. */
-function isPrintifyLine(line: CartLine): boolean {
-  return Boolean(line.printifyProductId && line.printifyVariantId);
+/** Printful items ship from the print provider's own facility, not the atelier — they get their own real shipping quote instead of being folded into the atelier's Shippo parcel. */
+function isPrintfulLine(line: CartLine): boolean {
+  return Boolean(line.printfulProductId && line.printfulVariantId);
 }
 
 function StripePaymentForm({
@@ -79,15 +79,15 @@ export default function Checkout() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
 
-  const atelierLines = lines.filter((l) => !isPrintifyLine(l));
-  const printifyLines = lines.filter(isPrintifyLine);
+  const atelierLines = lines.filter((l) => !isPrintfulLine(l));
+  const printfulLines = lines.filter(isPrintfulLine);
   const needsShippo = atelierLines.length > 0;
-  const needsPrintifyShipping = printifyLines.length > 0;
+  const needsPrintfulShipping = printfulLines.length > 0;
 
   const [quoted, setQuoted] = useState(false);
   const [shippoRates, setShippoRates] = useState<ShippingRate[] | null>(null);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
-  const [printifyShippingAmount, setPrintifyShippingAmount] = useState<number | null>(null);
+  const [printfulShippingAmount, setPrintfulShippingAmount] = useState<number | null>(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState<string | null>(null);
 
@@ -97,8 +97,8 @@ export default function Checkout() {
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
 
   const selectedRate = shippoRates?.find((r) => r.id === selectedRateId) ?? null;
-  const shippingReady = (!needsShippo || Boolean(selectedRate)) && (!needsPrintifyShipping || printifyShippingAmount != null);
-  const shippingTotal = (selectedRate?.amount ?? 0) + (printifyShippingAmount ?? 0);
+  const shippingReady = (!needsShippo || Boolean(selectedRate)) && (!needsPrintfulShipping || printfulShippingAmount != null);
+  const shippingTotal = (selectedRate?.amount ?? 0) + (printfulShippingAmount ?? 0);
   const total = subtotal + shippingTotal;
 
   // Once a full shipping quote is in (both parts if the cart has both kinds
@@ -167,7 +167,7 @@ export default function Checkout() {
     setQuoted(false);
     setShippoRates(null);
     setSelectedRateId(null);
-    setPrintifyShippingAmount(null);
+    setPrintfulShippingAmount(null);
   }
 
   async function handleGetShipping() {
@@ -185,13 +185,12 @@ export default function Checkout() {
           }),
         );
       }
-      if (needsPrintifyShipping) {
-        const items = printifyLines.map((l) => ({
-          productId: l.printifyProductId!,
-          variantId: l.printifyVariantId!,
+      if (needsPrintfulShipping) {
+        const items = printfulLines.map((l) => ({
+          variantId: l.printfulVariantId!,
           quantity: l.quantity,
         }));
-        tasks.push(getPrintifyShippingCost(items, address).then(setPrintifyShippingAmount));
+        tasks.push(getPrintfulShippingCost(items, address).then(setPrintfulShippingAmount));
       }
 
       await Promise.all(tasks);
@@ -375,10 +374,10 @@ export default function Checkout() {
                       ))}
                     </>
                   )}
-                  {needsPrintifyShipping && printifyShippingAmount != null && (
+                  {needsPrintfulShipping && printfulShippingAmount != null && (
                     <div className="flex items-center justify-between gap-4 border border-stone-dark px-4 py-3 font-sans text-sm">
-                      <span className="text-charcoal">Printify items — standard shipping</span>
-                      <span className="text-charcoal">{formatPrice(printifyShippingAmount)}</span>
+                      <span className="text-charcoal">Printful items — standard shipping</span>
+                      <span className="text-charcoal">{formatPrice(printfulShippingAmount)}</span>
                     </div>
                   )}
                   <button
@@ -448,15 +447,15 @@ export default function Checkout() {
                 <span className="text-warmgray">Subtotal</span>
                 <span className="text-charcoal">{formatPrice(subtotal)}</span>
               </div>
-              {needsShippo && needsPrintifyShipping ? (
+              {needsShippo && needsPrintfulShipping ? (
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-warmgray">Atelier shipping</span>
                     <span className="text-charcoal">{selectedRate ? formatPrice(selectedRate.amount) : "—"}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-warmgray">Printify shipping</span>
-                    <span className="text-charcoal">{printifyShippingAmount != null ? formatPrice(printifyShippingAmount) : "—"}</span>
+                    <span className="text-warmgray">Printful shipping</span>
+                    <span className="text-charcoal">{printfulShippingAmount != null ? formatPrice(printfulShippingAmount) : "—"}</span>
                   </div>
                 </>
               ) : (

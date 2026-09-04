@@ -1,31 +1,31 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CheckCircle2, RefreshCw, ExternalLink } from "lucide-react";
-import { listPrintifyProducts, importPrintifyProduct, listPrintifyOrders, type PrintifyCatalogProduct, type PrintifyOrderSummary } from "@/lib/printify";
+import { listPrintfulProducts, importPrintfulProduct, listPrintfulOrders, type PrintfulCatalogProduct, type PrintfulOrderSummary } from "@/lib/printful";
 import { formatDate, formatPrice } from "@/lib/utils/format";
 import { Button } from "@/components/ui/Button";
 
-export default function Printify() {
-  const [products, setProducts] = useState<PrintifyCatalogProduct[] | null>(null);
+export default function Printful() {
+  const [products, setProducts] = useState<PrintfulCatalogProduct[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [importingId, setImportingId] = useState<string | null>(null);
-  const [importedSlug, setImportedSlug] = useState<Record<string, string>>({});
+  const [importingId, setImportingId] = useState<number | null>(null);
+  const [importedSlug, setImportedSlug] = useState<Record<number, string>>({});
 
-  const [orders, setOrders] = useState<PrintifyOrderSummary[] | null>(null);
+  const [orders, setOrders] = useState<PrintfulOrderSummary[] | null>(null);
   const [ordersError, setOrdersError] = useState<string | null>(null);
 
   function reload() {
     setError(null);
-    listPrintifyProducts()
+    listPrintfulProducts()
       .then(setProducts)
-      .catch(() => setError("Could not load the Printify catalog — check the connection in Settings."));
+      .catch(() => setError("Could not load the Printful catalog — check the connection in Settings."));
   }
 
   function reloadOrders() {
     setOrdersError(null);
-    listPrintifyOrders()
+    listPrintfulOrders()
       .then(setOrders)
-      .catch(() => setOrdersError("Could not load Printify orders."));
+      .catch(() => setOrdersError("Could not load Printful orders."));
   }
 
   useEffect(() => {
@@ -33,10 +33,10 @@ export default function Printify() {
     reloadOrders();
   }, []);
 
-  async function handleImport(product: PrintifyCatalogProduct) {
+  async function handleImport(product: PrintfulCatalogProduct) {
     setImportingId(product.id);
     try {
-      const { slug } = await importPrintifyProduct(product.id);
+      const { slug } = await importPrintfulProduct(product.id);
       setImportedSlug((s) => ({ ...s, [product.id]: slug }));
       reload();
     } catch {
@@ -50,10 +50,10 @@ export default function Printify() {
     <div>
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-admin-ink">Printify Catalog</h1>
+          <h1 className="font-serif text-3xl text-admin-ink">Printful Catalog</h1>
           <p className="mt-1 font-sans text-sm text-admin-muted">
-            Products set up in your Printify shop. Import brings one in as a draft — pick categories and review the
-            copy before publishing it.
+            Products set up in your Printful store. Import brings one in as a draft — pick categories and write a
+            description before publishing it (Printful sync products carry no description of their own).
           </p>
         </div>
         <button
@@ -72,13 +72,13 @@ export default function Printify() {
         <p className="font-sans text-sm text-admin-muted">Loading…</p>
       ) : products.length === 0 ? (
         <div className="border border-admin-border bg-admin-surface p-8 text-center">
-          <p className="font-sans text-sm text-admin-ink">No products in your Printify shop yet.</p>
+          <p className="font-sans text-sm text-admin-ink">No products in your Printful store yet.</p>
           <p className="mt-2 font-sans text-xs text-admin-muted">
             Create one at{" "}
-            <a href="https://printify.com/app/products" target="_blank" rel="noreferrer" className="underline hover:text-admin-ink">
-              printify.com
+            <a href="https://www.printful.com/dashboard" target="_blank" rel="noreferrer" className="underline hover:text-admin-ink">
+              printful.com
             </a>{" "}
-            (pick a blueprint, print provider and upload your art), then refresh this page.
+            (pick a product, print area and upload your art), then refresh this page.
           </p>
         </div>
       ) : (
@@ -114,21 +114,21 @@ export default function Printify() {
       )}
 
       <a
-        href="https://printify.com/app/products"
+        href="https://www.printful.com/dashboard"
         target="_blank"
         rel="noreferrer"
         className="mt-8 flex items-center gap-1.5 font-sans text-xs uppercase tracking-wide text-admin-muted hover:text-admin-ink"
       >
-        Manage products on Printify
+        Manage products on Printful
         <ExternalLink size={12} strokeWidth={1.5} />
       </a>
 
       <div className="mt-12 border-t border-admin-border pt-8">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="font-serif text-xl text-admin-ink">All Printify Orders</h2>
+            <h2 className="font-serif text-xl text-admin-ink">All Printful Orders</h2>
             <p className="mt-1 font-sans text-xs text-admin-muted">
-              Every order in the shop, for reconciliation — not just ones placed through Jouber's checkout.
+              Every order in the store, for reconciliation — not just ones placed through Jouber's checkout.
             </p>
           </div>
           <button
@@ -146,7 +146,7 @@ export default function Printify() {
         {orders === null ? (
           <p className="font-sans text-sm text-admin-muted">Loading…</p>
         ) : orders.length === 0 ? (
-          <p className="font-sans text-sm text-admin-muted">No orders in the Printify shop yet.</p>
+          <p className="font-sans text-sm text-admin-muted">No orders in the Printful store yet.</p>
         ) : (
           <div className="overflow-x-auto border border-admin-border bg-admin-surface">
             <table className="w-full min-w-[640px] text-left font-sans text-sm">
@@ -166,10 +166,10 @@ export default function Printify() {
                     <td className="px-5 py-3.5 text-admin-ink">
                       {o.trackingUrl ? (
                         <a href={o.trackingUrl} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
-                          #{o.id.slice(0, 8)}
+                          #{o.id}
                         </a>
                       ) : (
-                        `#${o.id.slice(0, 8)}`
+                        `#${o.id}`
                       )}
                     </td>
                     <td className="px-5 py-3.5 text-admin-ink-muted">{o.customerName ?? "—"}</td>

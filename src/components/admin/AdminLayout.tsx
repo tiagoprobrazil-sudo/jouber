@@ -31,7 +31,7 @@ const NAV = [
   { label: "Reviews", to: "/admin/reviews", icon: Star },
   { label: "Customers", to: "/admin/orders", icon: Users },
   { label: "Site Content", to: "/admin/content", icon: FileText },
-  { label: "Printify", to: "/admin/printify", icon: Shirt },
+  { label: "Printful", to: "/admin/printful", icon: Shirt },
   { label: "Settings", to: "/admin/settings", icon: SettingsIcon },
 ];
 
