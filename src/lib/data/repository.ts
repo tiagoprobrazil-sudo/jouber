@@ -167,6 +167,7 @@ interface ProductRow {
   video_url: string | null;
   printful_product_id: number | null;
   printful_variant_id: number | null;
+  printful_catalog_variant_id: number | null;
   active: boolean;
   featured: boolean;
   customizable: boolean;
@@ -179,6 +180,7 @@ interface ProductRow {
     price_modifier: number | null;
     in_stock: boolean;
     printful_variant_id: number | null;
+    printful_catalog_variant_id: number | null;
   }[];
   product_category_map: { category_slug: string }[];
 }
@@ -195,6 +197,7 @@ function mapProductRow(row: ProductRow, rating?: { rating: number; count: number
         priceModifier: v.price_modifier != null ? Number(v.price_modifier) : undefined,
         inStock: v.in_stock,
         printfulVariantId: v.printful_variant_id ?? undefined,
+        printfulCatalogVariantId: v.printful_catalog_variant_id ?? undefined,
       }))
     : undefined;
 
@@ -225,6 +228,7 @@ function mapProductRow(row: ProductRow, rating?: { rating: number; count: number
     leadTime: row.lead_time ?? undefined,
     printfulProductId: row.printful_product_id ?? undefined,
     printfulVariantId: row.printful_variant_id ?? undefined,
+    printfulCatalogVariantId: row.printful_catalog_variant_id ?? undefined,
     active: row.active,
     featured: row.featured,
     customizable: row.customizable,
@@ -425,6 +429,7 @@ async function syncProductChildren(productId: string, data: Omit<Product, "id" |
         price_modifier: v.priceModifier ?? null,
         in_stock: v.inStock,
         printful_variant_id: v.printfulVariantId ?? null,
+        printful_catalog_variant_id: v.printfulCatalogVariantId ?? null,
       })),
     );
   }
@@ -453,6 +458,7 @@ function productColumns(data: Partial<Omit<Product, "id" | "createdAt">>) {
     ...(data.videoUrl !== undefined && { video_url: data.videoUrl || null }),
     ...(data.printfulProductId !== undefined && { printful_product_id: data.printfulProductId ?? null }),
     ...(data.printfulVariantId !== undefined && { printful_variant_id: data.printfulVariantId ?? null }),
+    ...(data.printfulCatalogVariantId !== undefined && { printful_catalog_variant_id: data.printfulCatalogVariantId ?? null }),
     ...(data.active !== undefined && { active: data.active }),
     ...(data.featured !== undefined && { featured: data.featured }),
     ...(data.customizable !== undefined && { customizable: data.customizable }),

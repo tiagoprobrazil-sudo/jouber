@@ -65,6 +65,7 @@ export default function ProductDetail() {
         shippingHeightIn: product.shippingHeightIn,
         printfulProductId: product.printfulProductId,
         printfulVariantId: variant?.printfulVariantId ?? product.printfulVariantId,
+        printfulCatalogVariantId: variant?.printfulCatalogVariantId ?? product.printfulCatalogVariantId,
       },
       { openDrawer: true },
     );

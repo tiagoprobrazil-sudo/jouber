@@ -30,7 +30,8 @@ export async function importPrintfulProduct(printfulProductId: number): Promise<
 }
 
 export interface PrintfulShippingItem {
-  variantId: number;
+  /** Printful's *catalog* variant id — not the sync variant id used for orders. See _shared/printfulSync.ts. */
+  catalogVariantId: number;
   quantity: number;
 }
 

@@ -83,6 +83,11 @@ export default function Checkout() {
   const printfulLines = lines.filter(isPrintfulLine);
   const needsShippo = atelierLines.length > 0;
   const needsPrintfulShipping = printfulLines.length > 0;
+  // Local pickup skips shipping entirely, but only makes sense for
+  // atelier-fulfilled items — anything routed through Printful ships from
+  // the print provider's own facility, not from the atelier, so it can't
+  // be picked up here.
+  const pickupEligible = !needsPrintfulShipping;
 
   const [quoted, setQuoted] = useState(false);
   const [shippoRates, setShippoRates] = useState<ShippingRate[] | null>(null);
@@ -90,6 +95,8 @@ export default function Checkout() {
   const [printfulShippingAmount, setPrintfulShippingAmount] = useState<number | null>(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState<string | null>(null);
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<"ship" | "pickup">("ship");
+  const isPickup = fulfillmentMethod === "pickup" && pickupEligible;
 
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [piLoading, setPiLoading] = useState(false);
@@ -97,8 +104,8 @@ export default function Checkout() {
   const [completedOrderId, setCompletedOrderId] = useState<string | null>(null);
 
   const selectedRate = shippoRates?.find((r) => r.id === selectedRateId) ?? null;
-  const shippingReady = (!needsShippo || Boolean(selectedRate)) && (!needsPrintfulShipping || printfulShippingAmount != null);
-  const shippingTotal = (selectedRate?.amount ?? 0) + (printfulShippingAmount ?? 0);
+  const shippingReady = isPickup || ((!needsShippo || Boolean(selectedRate)) && (!needsPrintfulShipping || printfulShippingAmount != null));
+  const shippingTotal = isPickup ? 0 : (selectedRate?.amount ?? 0) + (printfulShippingAmount ?? 0);
   const total = subtotal + shippingTotal;
 
   // Once a full shipping quote is in (both parts if the cart has both kinds
@@ -119,7 +126,10 @@ export default function Checkout() {
       email,
       subtotal,
       shippingAmount: shippingTotal,
-      shippingAddress: address,
+      // Marks the order as a pickup in shipping_address (no separate
+      // column) — the street/city/etc. fields are left blank since they
+      // were never collected for a pickup order.
+      shippingAddress: isPickup ? { ...address, street1: "Local pickup — no shipping address collected" } : address,
       items: lines.map((l) => ({
         productSlug: l.productSlug,
         productTitle: l.title,
@@ -170,6 +180,14 @@ export default function Checkout() {
     setPrintfulShippingAmount(null);
   }
 
+  function handleFulfillmentChange(method: "ship" | "pickup") {
+    setFulfillmentMethod(method);
+    setQuoted(false);
+    setShippoRates(null);
+    setSelectedRateId(null);
+    setPrintfulShippingAmount(null);
+  }
+
   async function handleGetShipping() {
     setShippingLoading(true);
     setShippingError(null);
@@ -187,7 +205,7 @@ export default function Checkout() {
       }
       if (needsPrintfulShipping) {
         const items = printfulLines.map((l) => ({
-          variantId: l.printfulVariantId!,
+          catalogVariantId: l.printfulCatalogVariantId!,
           quantity: l.quantity,
         }));
         tasks.push(getPrintfulShippingCost(items, address).then(setPrintfulShippingAmount));
@@ -244,7 +262,7 @@ export default function Checkout() {
             </fieldset>
 
             <fieldset className="space-y-4">
-              <legend className="mb-1 font-serif text-xl">Shipping Address</legend>
+              <legend className="mb-1 font-serif text-xl">{isPickup ? "Contact Name" : "Shipping Address"}</legend>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Full name</label>
@@ -256,90 +274,127 @@ export default function Checkout() {
                     className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
                   />
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Address</label>
-                  <input
-                    type="text"
-                    required
-                    value={address.street1}
-                    onChange={(e) => updateAddress("street1", e.target.value)}
-                    className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Apartment, suite, etc. (optional)</label>
-                  <input
-                    type="text"
-                    value={address.street2}
-                    onChange={(e) => updateAddress("street2", e.target.value)}
-                    className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">City</label>
-                  <input
-                    type="text"
-                    required
-                    value={address.city}
-                    onChange={(e) => updateAddress("city", e.target.value)}
-                    className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">State / Province</label>
-                  <input
-                    type="text"
-                    required
-                    value={address.state}
-                    onChange={(e) => updateAddress("state", e.target.value)}
-                    className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Postal code</label>
-                  <input
-                    type="text"
-                    required
-                    value={address.zip}
-                    onChange={(e) => updateAddress("zip", e.target.value)}
-                    className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Country</label>
-                  <select
-                    required
-                    value={address.country}
-                    onChange={(e) => updateAddress("country", e.target.value)}
-                    className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
-                  >
-                    <option value="US">United States</option>
-                    <option value="CA">Canada</option>
-                    <option value="BR">Brazil</option>
-                    <option value="GB">United Kingdom</option>
-                    <option value="PT">Portugal</option>
-                    <option value="AU">Australia</option>
-                  </select>
-                </div>
+                {!isPickup && (
+                  <>
+                    <div className="sm:col-span-2">
+                      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Address</label>
+                      <input
+                        type="text"
+                        required
+                        value={address.street1}
+                        onChange={(e) => updateAddress("street1", e.target.value)}
+                        className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Apartment, suite, etc. (optional)</label>
+                      <input
+                        type="text"
+                        value={address.street2}
+                        onChange={(e) => updateAddress("street2", e.target.value)}
+                        className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">City</label>
+                      <input
+                        type="text"
+                        required
+                        value={address.city}
+                        onChange={(e) => updateAddress("city", e.target.value)}
+                        className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">State / Province</label>
+                      <input
+                        type="text"
+                        required
+                        value={address.state}
+                        onChange={(e) => updateAddress("state", e.target.value)}
+                        className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Postal code</label>
+                      <input
+                        type="text"
+                        required
+                        value={address.zip}
+                        onChange={(e) => updateAddress("zip", e.target.value)}
+                        className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-warmgray">Country</label>
+                      <select
+                        required
+                        value={address.country}
+                        onChange={(e) => updateAddress("country", e.target.value)}
+                        className="w-full border border-stone-dark bg-transparent px-4 py-3 font-sans text-sm focus:border-olive focus:outline-none"
+                      >
+                        <option value="US">United States</option>
+                        <option value="CA">Canada</option>
+                        <option value="BR">Brazil</option>
+                        <option value="GB">United Kingdom</option>
+                        <option value="PT">Portugal</option>
+                        <option value="AU">Australia</option>
+                      </select>
+                    </div>
+                  </>
+                )}
               </div>
             </fieldset>
 
             <fieldset className="space-y-4 border-t border-stone-dark pt-8">
               <legend className="mb-1 font-serif text-xl">Shipping Method</legend>
 
-              {!quoted && (
-                <button
-                  type="button"
-                  onClick={handleGetShipping}
-                  disabled={!addressIsComplete(address) || shippingLoading}
-                  className="flex items-center gap-2 border border-charcoal px-6 py-3 font-sans text-[13px] uppercase tracking-[0.14em] text-charcoal transition-colors hover:bg-charcoal hover:text-ivory disabled:cursor-not-allowed disabled:border-stone-dark disabled:text-warmgray"
-                >
-                  {shippingLoading && <Loader2 size={14} className="animate-spin" />}
-                  {shippingLoading ? "Getting rates..." : "Get shipping rates"}
-                </button>
+              {pickupEligible && (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleFulfillmentChange("ship")}
+                    aria-pressed={!isPickup}
+                    className={`border px-4 py-2.5 font-sans text-[13px] transition-colors ${
+                      !isPickup ? "border-charcoal bg-charcoal text-ivory" : "border-stone-dark text-charcoal hover:border-charcoal"
+                    }`}
+                  >
+                    Ship to me
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleFulfillmentChange("pickup")}
+                    aria-pressed={isPickup}
+                    className={`border px-4 py-2.5 font-sans text-[13px] transition-colors ${
+                      isPickup ? "border-charcoal bg-charcoal text-ivory" : "border-stone-dark text-charcoal hover:border-charcoal"
+                    }`}
+                  >
+                    Local pickup
+                  </button>
+                </div>
               )}
 
-              {shippingError && <p className="font-sans text-sm text-red-700">{shippingError}</p>}
+              {isPickup ? (
+                <p className="font-sans text-sm text-warmgray-dark">
+                  No shipping fee — we'll contact you at your email once your order is ready to pick up at the atelier.
+                </p>
+              ) : (
+                <>
+                  {!quoted && (
+                    <button
+                      type="button"
+                      onClick={handleGetShipping}
+                      disabled={!addressIsComplete(address) || shippingLoading}
+                      className="flex items-center gap-2 border border-charcoal px-6 py-3 font-sans text-[13px] uppercase tracking-[0.14em] text-charcoal transition-colors hover:bg-charcoal hover:text-ivory disabled:cursor-not-allowed disabled:border-stone-dark disabled:text-warmgray"
+                    >
+                      {shippingLoading && <Loader2 size={14} className="animate-spin" />}
+                      {shippingLoading ? "Getting rates..." : "Get shipping rates"}
+                    </button>
+                  )}
+
+                  {shippingError && <p className="font-sans text-sm text-red-700">{shippingError}</p>}
+                </>
+              )}
 
               {quoted && (
                 <div className="space-y-2">
@@ -447,7 +502,12 @@ export default function Checkout() {
                 <span className="text-warmgray">Subtotal</span>
                 <span className="text-charcoal">{formatPrice(subtotal)}</span>
               </div>
-              {needsShippo && needsPrintfulShipping ? (
+              {isPickup ? (
+                <div className="flex items-center justify-between">
+                  <span className="text-warmgray">Local pickup</span>
+                  <span className="text-charcoal">Free</span>
+                </div>
+              ) : needsShippo && needsPrintfulShipping ? (
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-warmgray">Atelier shipping</span>

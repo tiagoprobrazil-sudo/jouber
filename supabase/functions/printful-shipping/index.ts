@@ -1,14 +1,20 @@
 // Supabase Edge Function: printful-shipping
 //
 // Quotes real shipping cost for the Printful-fulfilled lines in a cart via
-// Printful's own /shipping-rates — those items ship from the print
+// Printful's own POST /shipping/rates — those items ship from the print
 // provider's facility, not the atelier, so Shippo's atelier-address quote
 // (see shipping-rates) doesn't apply to them. Checkout combines this with
 // the Shippo quote for any non-Printful lines in the same cart.
 //
+// Confirmed by direct testing against the real API (2026-09-04): this
+// endpoint is `/shipping/rates` (not `/shipping-rates`, as Printful's own
+// docs page summary suggested), and each item needs the *catalog*
+// variant_id — the sync_variant_id used for order creation is rejected
+// here. See _shared/printfulSync.ts for where catalogVariantId comes from.
+//
 // Deploy with: supabase functions deploy printful-shipping
 //
-// Request body:  { items: [{ variantId, quantity }], address: ShippingAddress }
+// Request body:  { items: [{ catalogVariantId, quantity }], address: ShippingAddress }
 // Response:      { amount: number } (dollars, "STANDARD" rate)
 
 import { getPrintfulConfig, printfulFetch, type PrintfulEnvelope } from "../_shared/printful.ts";
@@ -24,7 +30,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 interface Item {
-  variantId: number;
+  catalogVariantId: number;
   quantity: number;
 }
 
@@ -67,7 +73,7 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "address is missing required fields" }, 400);
   }
 
-  const res = await printfulFetch(config, "/shipping-rates", {
+  const res = await printfulFetch(config, "/shipping/rates", {
     method: "POST",
     body: JSON.stringify({
       recipient: {
@@ -78,7 +84,7 @@ Deno.serve(async (req) => {
         country_code: address.country,
         zip: address.zip,
       },
-      items: items.map((i) => ({ sync_variant_id: i.variantId, quantity: i.quantity })),
+      items: items.map((i) => ({ variant_id: i.catalogVariantId, quantity: i.quantity })),
     }),
   });
 

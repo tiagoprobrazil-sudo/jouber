@@ -41,6 +41,8 @@ export interface ProductVariant {
   inStock: boolean;
   /** Links this variant to a Printful sync variant id for automatic fulfillment — see lib/printful. */
   printfulVariantId?: number;
+  /** Printful's underlying *catalog* variant id (same across every seller) — required by Printful's shipping-rate quote endpoint, which doesn't accept the sync variant id above. */
+  printfulCatalogVariantId?: number;
 }
 
 export interface Product {
@@ -86,6 +88,7 @@ export interface Product {
    */
   printfulProductId?: number;
   printfulVariantId?: number;
+  printfulCatalogVariantId?: number;
   active: boolean;
   featured: boolean;
   customizable: boolean;

@@ -2,6 +2,12 @@
 // printful-webhook (automatic re-sync on Printful's product-updated event).
 // Fetches one product from Printful and upserts it into Jouber's products
 // table, keyed by printful_product_id.
+//
+// Each variant carries TWO distinct Printful ids, confirmed by testing
+// against the real API: the sync variant id (`printful_variant_id`, used
+// as `sync_variant_id` when creating an order) and the underlying catalog
+// variant id (`printful_catalog_variant_id`, the blank product/size/color
+// shared across every seller — required by POST /shipping/rates instead).
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { printfulFetch, type PrintfulConfig, type PrintfulEnvelope, type PrintfulProductDetail } from "./printful.ts";
@@ -109,12 +115,19 @@ export async function syncPrintfulProduct(
         option_label: "Option",
         price_modifier: Number((Number(v.retail_price) - basePrice).toFixed(2)) || null,
         in_stock: true,
+        // Sync variant id (order line items) and catalog variant id
+        // (shipping-rate quotes) are different Printful ids — see the
+        // module comment above.
         printful_variant_id: v.id,
+        printful_catalog_variant_id: v.variant_id,
       })),
     );
-    await admin.from("products").update({ printful_variant_id: null }).eq("id", productId);
+    await admin.from("products").update({ printful_variant_id: null, printful_catalog_variant_id: null }).eq("id", productId);
   } else {
-    await admin.from("products").update({ printful_variant_id: syncedVariants[0].id }).eq("id", productId);
+    await admin
+      .from("products")
+      .update({ printful_variant_id: syncedVariants[0].id, printful_catalog_variant_id: syncedVariants[0].variant_id })
+      .eq("id", productId);
   }
 
   return { ok: true, productId, slug };

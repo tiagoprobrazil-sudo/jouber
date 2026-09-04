@@ -16,6 +16,8 @@ export interface CartLine {
   /** Set when this line is fulfilled by Printful (not the atelier) — routes its shipping quote to lib/printful instead of Shippo. */
   printfulProductId?: number;
   printfulVariantId?: number;
+  /** Printful's catalog variant id — needed for the shipping-rate quote, distinct from printfulVariantId above (the sync variant id, used for order creation). */
+  printfulCatalogVariantId?: number;
 }
 
 interface CartState {
