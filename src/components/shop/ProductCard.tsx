@@ -51,6 +51,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
           src={optimizedImageUrl(primary?.url, 800, 4 / 5)}
           srcSet={optimizedImageSrcSet(primary?.url, 4 / 5)}
           alt={primary?.alt ?? product.title}
+          width={800}
+          height={1000}
           loading="lazy"
           decoding="async"
           sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
@@ -62,6 +64,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
             srcSet={optimizedImageSrcSet(secondary?.url, 4 / 5)}
             alt=""
             aria-hidden="true"
+            width={800}
+            height={1000}
             decoding="async"
             sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
             className="absolute inset-0 h-full w-full scale-[1.03] object-cover opacity-0 transition-opacity duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 group-focus-visible:opacity-100"

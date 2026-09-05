@@ -64,7 +64,15 @@ export default function AdminProducts() {
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-10 shrink-0 overflow-hidden bg-admin-border-soft">
-                      <img src={optimizedImageUrl(p.images[0]?.url, 80, 10 / 12)} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      <img
+                        src={optimizedImageUrl(p.images[0]?.url, 80, 10 / 12)}
+                        alt=""
+                        width={80}
+                        height={96}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </div>
                     <div>
                       <p className="text-admin-ink">{p.title}</p>

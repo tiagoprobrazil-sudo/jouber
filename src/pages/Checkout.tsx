@@ -488,7 +488,15 @@ export default function Checkout() {
               {lines.map((line) => (
                 <li key={line.id} className="flex items-center gap-3 pt-4 first:pt-0">
                   <div className="h-16 w-14 shrink-0 overflow-hidden bg-stone">
-                    <img src={optimizedImageUrl(line.image, 112, 14 / 16)} alt={line.title} className="h-full w-full object-cover" loading="lazy" />
+                    <img
+                      src={optimizedImageUrl(line.image, 112, 14 / 16)}
+                      alt={line.title}
+                      width={112}
+                      height={128}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
                   <div className="flex-1">
                     <p className="font-serif text-sm leading-snug">{line.title}</p>

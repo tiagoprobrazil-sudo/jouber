@@ -46,7 +46,15 @@ export function ProductImagesField({ images, onChange }: ProductImagesFieldProps
       <div className="flex flex-wrap gap-3">
         {images.map((img, i) => (
           <div key={img.id} className="group relative h-28 w-24 shrink-0 overflow-hidden bg-admin-border-soft">
-            <img src={optimizedImageUrl(img.url, 96, 24 / 28)} alt="" className="h-full w-full object-cover" loading="lazy" />
+            <img
+              src={optimizedImageUrl(img.url, 96, 24 / 28)}
+              alt=""
+              width={96}
+              height={112}
+              className="h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
             {i === 0 && (
               <span className="absolute left-1 top-1 bg-olive px-1.5 py-0.5 font-sans text-[9px] uppercase tracking-wide text-ivory">
                 Primary

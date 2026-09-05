@@ -107,6 +107,8 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                         <img
                           src={optimizedImageUrl(p.images[0]?.url, 400, 4 / 5)}
                           alt={p.images[0]?.alt ?? p.title}
+                          width={400}
+                          height={500}
                           loading="lazy"
                           decoding="async"
                           sizes="(max-width: 640px) 46vw, 24vw"

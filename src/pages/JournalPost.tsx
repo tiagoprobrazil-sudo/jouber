@@ -53,6 +53,8 @@ export default function JournalPost() {
           src={optimizedImageUrl(post.coverImage.url, 1600, 16 / 9)}
           srcSet={optimizedImageSrcSet(post.coverImage.url, 16 / 9)}
           alt={post.coverImage.alt}
+          width={1600}
+          height={900}
           sizes="100vw"
           fetchPriority="high"
           className="h-full w-full object-cover opacity-90"

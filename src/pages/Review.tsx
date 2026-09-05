@@ -39,7 +39,15 @@ export default function Review() {
             <h1 className="font-serif text-3xl text-charcoal sm:text-4xl">How was your piece?</h1>
             <div className="mt-4 flex items-center gap-3">
               {info.productImage && (
-                <img src={optimizedImageUrl(info.productImage, 112, 14 / 16)} alt="" className="h-16 w-14 shrink-0 border border-stone-dark object-cover" loading="lazy" />
+                <img
+                  src={optimizedImageUrl(info.productImage, 112, 14 / 16)}
+                  alt=""
+                  width={112}
+                  height={128}
+                  className="h-16 w-14 shrink-0 border border-stone-dark object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
               )}
               <div>
                 <Link to={`/product/${info.productSlug}`} className="font-serif text-lg text-charcoal hover:text-olive">

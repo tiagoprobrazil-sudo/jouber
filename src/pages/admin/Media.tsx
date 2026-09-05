@@ -111,7 +111,15 @@ export default function Media() {
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
         {visible.map((item) => (
           <div key={item.id} className="group relative aspect-square overflow-hidden bg-admin-border-soft">
-            <img src={optimizedImageUrl(item.url, 240)} alt={item.name} loading="lazy" className="h-full w-full object-cover" />
+            <img
+              src={optimizedImageUrl(item.url, 240)}
+              alt={item.name}
+              width={240}
+              height={240}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
             <div className="absolute inset-x-0 bottom-0 truncate bg-charcoal/70 px-2 py-1 font-sans text-[10px] text-ivory opacity-0 transition-opacity group-hover:opacity-100">
               {item.name}
             </div>
