@@ -36,12 +36,12 @@ export function Gallery({ images, videoUrl }: { images: ProductImage[]; videoUrl
         ) : (
           <>
             {backSrc && backSrc !== current?.url && (
-              <img src={optimizedImageUrl(backSrc, 1200, 82)} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
+              <img src={optimizedImageUrl(backSrc, 1200, 4 / 5, 82)} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
             )}
             <img
               key={current?.id}
-              src={optimizedImageUrl(current?.url, 1200, 82)}
-              srcSet={optimizedImageSrcSet(current?.url)}
+              src={optimizedImageUrl(current?.url, 1200, 4 / 5, 82)}
+              srcSet={optimizedImageSrcSet(current?.url, 4 / 5)}
               alt={current?.alt ?? ""}
               sizes="(max-width: 1024px) 100vw, 58vw"
               className="relative h-full w-full object-cover animate-fade-in motion-reduce:animate-none"
@@ -64,7 +64,7 @@ export function Gallery({ images, videoUrl }: { images: ProductImage[]; videoUrl
                 !showingVideo && i === active ? "opacity-100 ring-1 ring-olive" : "opacity-60 hover:opacity-100",
               )}
             >
-              <img src={optimizedImageUrl(img.url, 240)} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" sizes="96px" />
+              <img src={optimizedImageUrl(img.url, 240, 1)} alt="" className="h-full w-full object-cover" loading="lazy" decoding="async" sizes="96px" />
             </button>
           ))}
           {videoUrl && (

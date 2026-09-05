@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, ImagePlus, Star } from "lucide-react";
 import type { ProductImage } from "@/lib/data/types";
 import { MediaPickerModal } from "@/components/admin/MediaPickerModal";
+import { optimizedImageUrl } from "@/lib/utils/imageUrl";
 
 interface ProductImagesFieldProps {
   images: ProductImage[];
@@ -45,7 +46,7 @@ export function ProductImagesField({ images, onChange }: ProductImagesFieldProps
       <div className="flex flex-wrap gap-3">
         {images.map((img, i) => (
           <div key={img.id} className="group relative h-28 w-24 shrink-0 overflow-hidden bg-admin-border-soft">
-            <img src={img.url} alt="" className="h-full w-full object-cover" />
+            <img src={optimizedImageUrl(img.url, 96, 24 / 28)} alt="" className="h-full w-full object-cover" loading="lazy" />
             {i === 0 && (
               <span className="absolute left-1 top-1 bg-olive px-1.5 py-0.5 font-sans text-[9px] uppercase tracking-wide text-ivory">
                 Primary

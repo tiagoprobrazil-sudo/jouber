@@ -186,6 +186,7 @@ export default function PostEditor() {
             value={form.coverImage.url || null}
             onChange={(url) => update("coverImage", { ...form.coverImage, url: url ?? "", alt: form.title })}
             aspect="aspect-[16/9]"
+            aspectRatio={16 / 9}
           />
 
           <div>

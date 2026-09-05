@@ -8,9 +8,11 @@ interface ImagePickerFieldProps {
   value: string | null;
   onChange: (url: string | null) => void;
   aspect?: string;
+  /** Numeric width/height counterpart to `aspect` (a Tailwind class string) — needed so the CDN thumbnail is requested at the right shape. Keep in sync with `aspect`. */
+  aspectRatio?: number;
 }
 
-export function ImagePickerField({ label, value, onChange, aspect = "aspect-[4/5]" }: ImagePickerFieldProps) {
+export function ImagePickerField({ label, value, onChange, aspect = "aspect-[4/5]", aspectRatio = 4 / 5 }: ImagePickerFieldProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -18,7 +20,7 @@ export function ImagePickerField({ label, value, onChange, aspect = "aspect-[4/5
       <p className="mb-2 font-sans text-xs uppercase tracking-wide text-admin-muted">{label}</p>
       {value ? (
         <div className={`relative ${aspect} w-full max-w-[220px] overflow-hidden bg-admin-border-soft`}>
-          <img src={optimizedImageUrl(value, 440)} alt="" className="h-full w-full object-cover" loading="lazy" />
+          <img src={optimizedImageUrl(value, 440, aspectRatio)} alt="" className="h-full w-full object-cover" loading="lazy" />
           <button
             type="button"
             onClick={() => onChange(null)}

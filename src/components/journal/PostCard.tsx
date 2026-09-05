@@ -11,12 +11,13 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export function PostCard({ post, featured = false }: { post: Post; featured?: boolean }) {
+  const aspectRatio = featured ? 16 / 10 : 4 / 3;
   return (
     <Link to={`/journal/${post.slug}`} className="group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive">
       <div className={`overflow-hidden bg-stone ${featured ? "aspect-[16/10]" : "aspect-[4/3]"}`}>
         <img
-          src={optimizedImageUrl(post.coverImage.url, 800)}
-          srcSet={optimizedImageSrcSet(post.coverImage.url)}
+          src={optimizedImageUrl(post.coverImage.url, 800, aspectRatio)}
+          srcSet={optimizedImageSrcSet(post.coverImage.url, aspectRatio)}
           alt={post.coverImage.alt}
           loading="lazy"
           decoding="async"

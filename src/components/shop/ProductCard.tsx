@@ -48,8 +48,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
     >
       <div className="product-card__media relative aspect-[4/5] overflow-hidden rounded-sm bg-stone">
         <img
-          src={optimizedImageUrl(primary?.url, 800)}
-          srcSet={optimizedImageSrcSet(primary?.url)}
+          src={optimizedImageUrl(primary?.url, 800, 4 / 5)}
+          srcSet={optimizedImageSrcSet(primary?.url, 4 / 5)}
           alt={primary?.alt ?? product.title}
           loading="lazy"
           decoding="async"
@@ -58,8 +58,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
         />
         {loadSecondary && secondary?.url !== primary?.url && (
           <img
-            src={optimizedImageUrl(secondary?.url, 800)}
-            srcSet={optimizedImageSrcSet(secondary?.url)}
+            src={optimizedImageUrl(secondary?.url, 800, 4 / 5)}
+            srcSet={optimizedImageSrcSet(secondary?.url, 4 / 5)}
             alt=""
             aria-hidden="true"
             decoding="async"

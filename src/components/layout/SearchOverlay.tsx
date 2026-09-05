@@ -105,7 +105,7 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                     <Link to={`/product/${p.slug}`} onClick={onClose} className="group block">
                       <div className="aspect-[4/5] overflow-hidden bg-stone">
                         <img
-                          src={optimizedImageUrl(p.images[0]?.url, 400)}
+                          src={optimizedImageUrl(p.images[0]?.url, 400, 4 / 5)}
                           alt={p.images[0]?.alt ?? p.title}
                           loading="lazy"
                           decoding="async"

@@ -50,8 +50,8 @@ export default function JournalPost() {
 
       <div className="relative h-[55vh] min-h-[380px] overflow-hidden bg-charcoal sm:h-[70vh]">
         <img
-          src={optimizedImageUrl(post.coverImage.url, 1600)}
-          srcSet={optimizedImageSrcSet(post.coverImage.url)}
+          src={optimizedImageUrl(post.coverImage.url, 1600, 16 / 9)}
+          srcSet={optimizedImageSrcSet(post.coverImage.url, 16 / 9)}
           alt={post.coverImage.alt}
           sizes="100vw"
           fetchPriority="high"
