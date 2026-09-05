@@ -69,7 +69,7 @@ export function Gallery({ images, videoUrl }: { images: ProductImage[]; videoUrl
               aria-label={`Show image ${i + 1}`}
               aria-current={!showingVideo && i === active}
               className={cn(
-                "aspect-square overflow-hidden bg-stone transition-opacity duration-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive",
+                "overflow-hidden bg-stone transition-opacity duration-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-olive",
                 !showingVideo && i === active ? "opacity-100 ring-1 ring-olive" : "opacity-60 hover:opacity-100",
               )}
             >
@@ -78,7 +78,7 @@ export function Gallery({ images, videoUrl }: { images: ProductImage[]; videoUrl
                 alt=""
                 width={240}
                 height={240}
-                className="h-full w-full object-cover"
+                className="aspect-square w-full object-cover"
                 loading="lazy"
                 decoding="async"
                 sizes="96px"

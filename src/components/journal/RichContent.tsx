@@ -16,7 +16,7 @@ export function RichContent({ html, gallery }: RichContentProps) {
         <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {gallery.map((img) => (
             <figure key={img.id}>
-              <div className="aspect-square overflow-hidden">
+              <div className="overflow-hidden">
                 <img
                   src={optimizedImageUrl(img.url, 440)}
                   alt={img.alt}
@@ -25,7 +25,7 @@ export function RichContent({ html, gallery }: RichContentProps) {
                   loading="lazy"
                   decoding="async"
                   sizes="(max-width: 640px) 50vw, 220px"
-                  className="h-full w-full object-cover"
+                  className="aspect-square w-full object-cover"
                 />
               </div>
               {img.caption && <figcaption className="mt-1.5 font-sans text-[11px] text-warmgray">{img.caption}</figcaption>}

@@ -96,13 +96,13 @@ export function MediaPickerModal({ isOpen, onClose, onSelect, onUploadMany, used
         {uploadError && <p className="border-b border-admin-border px-6 py-2 font-sans text-xs text-red-700">{uploadError}</p>}
         <div className="grid flex-1 grid-cols-3 gap-3 overflow-y-auto p-6 sm:grid-cols-4 md:grid-cols-5">
           {items.map((item) => (
-            <button key={item.id} type="button" onClick={() => onSelect(item.url)} className="aspect-square overflow-hidden bg-admin-border-soft transition-opacity hover:opacity-80" aria-label={`Use ${item.name}`}>
+            <button key={item.id} type="button" onClick={() => onSelect(item.url)} className="overflow-hidden bg-admin-border-soft transition-opacity hover:opacity-80" aria-label={`Use ${item.name}`}>
               <img
                 src={optimizedImageUrl(item.url, 240)}
                 alt={item.name}
                 width={240}
                 height={240}
-                className="h-full w-full object-cover"
+                className="h-[140px] w-full object-cover"
                 loading="lazy"
                 decoding="async"
               />
