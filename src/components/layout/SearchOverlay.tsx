@@ -6,6 +6,7 @@ import type { Product, Post } from "@/lib/data/types";
 import { Price } from "@/components/ui/Price";
 import { useLockBodyScroll } from "@/lib/hooks/useLockBodyScroll";
 import { useDialogFocus } from "@/lib/hooks/useDialogFocus";
+import { optimizedImageUrl } from "@/lib/utils/imageUrl";
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -104,9 +105,10 @@ export function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                     <Link to={`/product/${p.slug}`} onClick={onClose} className="group block">
                       <div className="aspect-[4/5] overflow-hidden bg-stone">
                         <img
-                          src={p.images[0]?.url}
+                          src={optimizedImageUrl(p.images[0]?.url, 400)}
                           alt={p.images[0]?.alt ?? p.title}
                           loading="lazy"
+                          decoding="async"
                           sizes="(max-width: 640px) 46vw, 24vw"
                           className="h-full w-full object-cover transition-transform duration-[var(--motion-image)] ease-[var(--ease-editorial)] group-hover:scale-[1.025] group-focus-visible:scale-[1.025] motion-reduce:transition-none"
                         />

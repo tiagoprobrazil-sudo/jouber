@@ -9,6 +9,7 @@ import { combineCartParcel } from "@/lib/shipping/parcel";
 import { getShippingRates } from "@/lib/shipping/shippo";
 import type { ShippingAddress, ShippingRate } from "@/lib/shipping/types";
 import { getPrintfulShippingCost } from "@/lib/printful";
+import { optimizedImageUrl } from "@/lib/utils/imageUrl";
 import { getStripe, isStripeConfigured, createPaymentIntent, createOrder } from "@/lib/payments/stripe";
 import { Button } from "@/components/ui/Button";
 
@@ -487,7 +488,7 @@ export default function Checkout() {
               {lines.map((line) => (
                 <li key={line.id} className="flex items-center gap-3 pt-4 first:pt-0">
                   <div className="h-16 w-14 shrink-0 overflow-hidden bg-stone">
-                    <img src={line.image} alt={line.title} className="h-full w-full object-cover" />
+                    <img src={optimizedImageUrl(line.image, 112)} alt={line.title} className="h-full w-full object-cover" loading="lazy" />
                   </div>
                   <div className="flex-1">
                     <p className="font-serif text-sm leading-snug">{line.title}</p>

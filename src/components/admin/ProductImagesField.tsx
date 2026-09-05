@@ -17,6 +17,17 @@ export function ProductImagesField({ images, onChange }: ProductImagesFieldProps
     setOpen(false);
   }
 
+  function addUploadedImages(urls: string[]) {
+    const created = urls.map((url, index): ProductImage => ({
+      id: `img-${Date.now()}-${index}`,
+      url,
+      alt: "",
+      position: images.length + index,
+    }));
+    onChange([...images, ...created]);
+    setOpen(false);
+  }
+
   function removeImage(id: string) {
     onChange(images.filter((i) => i.id !== id).map((i, idx) => ({ ...i, position: idx })));
   }
@@ -61,7 +72,7 @@ export function ProductImagesField({ images, onChange }: ProductImagesFieldProps
           <span className="font-sans text-[11px]">Add</span>
         </button>
       </div>
-      <MediaPickerModal isOpen={open} onClose={() => setOpen(false)} onSelect={addImage} />
+      <MediaPickerModal isOpen={open} onClose={() => setOpen(false)} onSelect={addImage} onUploadMany={addUploadedImages} usedIn="products" />
     </div>
   );
 }

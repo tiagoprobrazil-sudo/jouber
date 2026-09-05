@@ -5,6 +5,7 @@ import type { Product } from "@/lib/data/types";
 import { getProducts, deleteProduct, updateProduct } from "@/lib/data/repository";
 import { ButtonLink } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils/format";
+import { optimizedImageUrl } from "@/lib/utils/imageUrl";
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[] | null>(null);
@@ -63,7 +64,7 @@ export default function AdminProducts() {
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-10 shrink-0 overflow-hidden bg-admin-border-soft">
-                      <img src={p.images[0]?.url} alt="" className="h-full w-full object-cover" />
+                      <img src={optimizedImageUrl(p.images[0]?.url, 80)} alt="" className="h-full w-full object-cover" loading="lazy" />
                     </div>
                     <div>
                       <p className="text-admin-ink">{p.title}</p>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { MediaPickerModal } from "@/components/admin/MediaPickerModal";
+import { optimizedImageUrl } from "@/lib/utils/imageUrl";
 
 interface ImagePickerFieldProps {
   label: string;
@@ -17,7 +18,7 @@ export function ImagePickerField({ label, value, onChange, aspect = "aspect-[4/5
       <p className="mb-2 font-sans text-xs uppercase tracking-wide text-admin-muted">{label}</p>
       {value ? (
         <div className={`relative ${aspect} w-full max-w-[220px] overflow-hidden bg-admin-border-soft`}>
-          <img src={value} alt="" className="h-full w-full object-cover" />
+          <img src={optimizedImageUrl(value, 440)} alt="" className="h-full w-full object-cover" loading="lazy" />
           <button
             type="button"
             onClick={() => onChange(null)}

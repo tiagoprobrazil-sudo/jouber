@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Product } from "@/lib/data/types";
 import { Price } from "@/components/ui/Price";
 import { cn } from "@/lib/utils/cn";
+import { optimizedImageSrcSet, optimizedImageUrl } from "@/lib/utils/imageUrl";
 
 const CATEGORY_LABELS: Record<string, string> = {
   statues: "Statue",
@@ -29,6 +31,7 @@ interface ProductCardProps {
  * requests reduced motion, so the photo swap never reads as an abrupt
  * cut. Every other transition on the site still honors that preference. */
 export function ProductCard({ product, className }: ProductCardProps) {
+  const [loadSecondary, setLoadSecondary] = useState(false);
   const primary = product.images[0];
   const secondary = product.images[1] ?? primary;
   const categoryLabel = CATEGORY_LABELS[product.categorySlugs[0]] ?? product.categorySlugs[0];
@@ -40,23 +43,30 @@ export function ProductCard({ product, className }: ProductCardProps) {
         "group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive",
         className,
       )}
+      onPointerEnter={() => setLoadSecondary(true)}
+      onFocus={() => setLoadSecondary(true)}
     >
-      <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-stone">
+      <div className="product-card__media relative aspect-[4/5] overflow-hidden rounded-sm bg-stone">
         <img
-          src={primary?.url}
+          src={optimizedImageUrl(primary?.url, 800)}
+          srcSet={optimizedImageSrcSet(primary?.url)}
           alt={primary?.alt ?? product.title}
           loading="lazy"
+          decoding="async"
           sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
           className="h-full w-full object-cover transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03] group-hover:opacity-0 group-focus-visible:scale-[1.03] group-focus-visible:opacity-0"
         />
-        <img
-          src={secondary?.url}
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-          sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
-          className="absolute inset-0 h-full w-full scale-[1.03] object-cover opacity-0 transition-opacity duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 group-focus-visible:opacity-100"
-        />
+        {loadSecondary && secondary?.url !== primary?.url && (
+          <img
+            src={optimizedImageUrl(secondary?.url, 800)}
+            srcSet={optimizedImageSrcSet(secondary?.url)}
+            alt=""
+            aria-hidden="true"
+            decoding="async"
+            sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
+            className="absolute inset-0 h-full w-full scale-[1.03] object-cover opacity-0 transition-opacity duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:opacity-100 group-focus-visible:opacity-100"
+          />
+        )}
 
         <span
           aria-hidden="true"

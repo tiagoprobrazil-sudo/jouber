@@ -1,6 +1,7 @@
 import { useCart, type CartLine } from "@/context/CartContext";
 import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import { formatPrice } from "@/lib/utils/format";
+import { optimizedImageUrl } from "@/lib/utils/imageUrl";
 
 export function CartLineItem({ line }: { line: CartLine }) {
   const { increment, decrement, removeItem } = useCart();
@@ -8,7 +9,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
   return (
     <li className="flex gap-4 py-5">
       <div className="h-24 w-20 shrink-0 overflow-hidden bg-stone">
-        <img src={line.image} alt={line.title} className="h-full w-full object-cover" loading="lazy" />
+        <img src={optimizedImageUrl(line.image, 160)} alt={line.title} className="h-full w-full object-cover" loading="lazy" />
       </div>
       <div className="flex flex-1 flex-col justify-between">
         <div>

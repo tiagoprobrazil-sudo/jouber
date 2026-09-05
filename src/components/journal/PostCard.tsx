@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import type { Post } from "@/lib/data/types";
 import { formatDate } from "@/lib/utils/format";
+import { optimizedImageSrcSet, optimizedImageUrl } from "@/lib/utils/imageUrl";
 
 const CATEGORY_LABELS: Record<string, string> = {
   atelier: "Atelier",
@@ -14,9 +15,11 @@ export function PostCard({ post, featured = false }: { post: Post; featured?: bo
     <Link to={`/journal/${post.slug}`} className="group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-olive">
       <div className={`overflow-hidden bg-stone ${featured ? "aspect-[16/10]" : "aspect-[4/3]"}`}>
         <img
-          src={post.coverImage.url}
+          src={optimizedImageUrl(post.coverImage.url, 800)}
+          srcSet={optimizedImageSrcSet(post.coverImage.url)}
           alt={post.coverImage.alt}
           loading="lazy"
+          decoding="async"
           sizes={featured ? "(max-width: 1024px) 100vw, 84vw" : "(max-width: 640px) 100vw, 33vw"}
           className="h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.025] group-focus-visible:scale-[1.025] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />

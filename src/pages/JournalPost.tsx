@@ -11,6 +11,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { formatDate } from "@/lib/utils/format";
 import { SacredDivider } from "@/components/brand/SacredDivider";
 import { CrownMark } from "@/components/brand/CrownMark";
+import { optimizedImageSrcSet, optimizedImageUrl } from "@/lib/utils/imageUrl";
 
 export default function JournalPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -48,7 +49,14 @@ export default function JournalPost() {
       <SeoHead title={post.title} description={post.excerpt} path={`/journal/${post.slug}`} type="article" image={post.coverImage.url} />
 
       <div className="relative h-[55vh] min-h-[380px] overflow-hidden bg-charcoal sm:h-[70vh]">
-        <img src={post.coverImage.url} alt={post.coverImage.alt} className="h-full w-full object-cover opacity-90" />
+        <img
+          src={optimizedImageUrl(post.coverImage.url, 1600)}
+          srcSet={optimizedImageSrcSet(post.coverImage.url)}
+          alt={post.coverImage.alt}
+          sizes="100vw"
+          fetchPriority="high"
+          className="h-full w-full object-cover opacity-90"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-charcoal/85 via-charcoal/10 to-transparent" aria-hidden="true" />
         <div className="container-editorial absolute inset-x-0 bottom-0 pb-12 sm:pb-16">
           <p className="mb-3 font-sans text-xs uppercase tracking-[0.2em] text-stone/90">

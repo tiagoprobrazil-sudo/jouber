@@ -5,6 +5,7 @@ import { SeoHead } from "@/components/layout/SeoHead";
 import { PageLoader } from "@/components/layout/PageLoader";
 import { ReviewForm } from "@/components/product/ReviewForm";
 import { getReviewRequest, submitReview, type ReviewRequestInfo } from "@/lib/reviews";
+import { optimizedImageUrl } from "@/lib/utils/imageUrl";
 
 export default function Review() {
   const { token } = useParams<{ token: string }>();
@@ -38,7 +39,7 @@ export default function Review() {
             <h1 className="font-serif text-3xl text-charcoal sm:text-4xl">How was your piece?</h1>
             <div className="mt-4 flex items-center gap-3">
               {info.productImage && (
-                <img src={info.productImage} alt="" className="h-16 w-14 shrink-0 border border-stone-dark object-cover" />
+                <img src={optimizedImageUrl(info.productImage, 112)} alt="" className="h-16 w-14 shrink-0 border border-stone-dark object-cover" loading="lazy" />
               )}
               <div>
                 <Link to={`/product/${info.productSlug}`} className="font-serif text-lg text-charcoal hover:text-olive">

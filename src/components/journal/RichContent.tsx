@@ -1,4 +1,5 @@
 import type { PostImage } from "@/lib/data/types";
+import { optimizedImageUrl } from "@/lib/utils/imageUrl";
 
 interface RichContentProps {
   html: string;
@@ -16,7 +17,7 @@ export function RichContent({ html, gallery }: RichContentProps) {
           {gallery.map((img) => (
             <figure key={img.id}>
               <div className="aspect-square overflow-hidden">
-                <img src={img.url} alt={img.alt} loading="lazy" sizes="(max-width: 640px) 50vw, 220px" className="h-full w-full object-cover" />
+                <img src={optimizedImageUrl(img.url, 440)} alt={img.alt} loading="lazy" sizes="(max-width: 640px) 50vw, 220px" className="h-full w-full object-cover" />
               </div>
               {img.caption && <figcaption className="mt-1.5 font-sans text-[11px] text-warmgray">{img.caption}</figcaption>}
             </figure>
