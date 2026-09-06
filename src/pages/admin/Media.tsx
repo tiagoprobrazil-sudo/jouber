@@ -108,33 +108,36 @@ export default function Media() {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
-        {visible.map((item) => (
-          <div key={item.id} className="group relative overflow-hidden bg-admin-border-soft">
-            <img
-              src={optimizedImageUrl(item.url, 240)}
-              alt={item.name}
-              width={240}
-              height={240}
-              loading="lazy"
-              decoding="async"
-              className="h-[140px] w-full object-cover"
-            />
-            <div className="absolute inset-x-0 bottom-0 truncate bg-charcoal/70 px-2 py-1 font-sans text-[10px] text-ivory opacity-0 transition-opacity group-hover:opacity-100">
-              {item.name}
+      {visible.length === 0 ? (
+        <p className="py-16 text-center font-sans text-sm text-admin-muted">No images here yet.</p>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          {visible.map((item) => (
+            <div key={item.id} className="group relative h-32 w-32 shrink-0 overflow-hidden bg-admin-border-soft">
+              <img
+                src={optimizedImageUrl(item.url, 240)}
+                alt={item.name}
+                width={240}
+                height={240}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 truncate bg-charcoal/70 px-2 py-1 font-sans text-[10px] text-ivory opacity-0 transition-opacity group-hover:opacity-100">
+                {item.name}
+              </div>
+              <button
+                type="button"
+                onClick={() => handleDelete(item)}
+                aria-label={`Delete ${item.name}`}
+                className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center bg-ivory/90 text-charcoal opacity-0 transition-opacity group-hover:opacity-100"
+              >
+                <Trash2 size={12} strokeWidth={1.75} />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => handleDelete(item)}
-              aria-label={`Delete ${item.name}`}
-              className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center bg-ivory/90 text-charcoal opacity-0 transition-opacity group-hover:opacity-100"
-            >
-              <Trash2 size={12} strokeWidth={1.75} />
-            </button>
-          </div>
-        ))}
-        {visible.length === 0 && <p className="col-span-full py-16 text-center font-sans text-sm text-admin-muted">No images here yet.</p>}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
