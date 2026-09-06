@@ -60,30 +60,43 @@ export async function syncPrintfulProduct(
     position: i,
   }));
 
-  const columns = {
-    title: product.name,
-    excerpt: product.name.slice(0, 140),
-    description: "",
-    price: basePrice,
-    currency: "USD",
-    sku: syncedVariants[0].sku || String(product.id),
-    stock: 0,
-    made_to_order: true,
-    lead_time: "5-7 business days (printed to order)",
-    printful_product_id: product.id,
-    active: false,
-    featured: false,
-    customizable: false,
-  };
-
   let productId: string;
   let slug: string;
   if (existing) {
+    // Re-syncing an already-imported product (admin "Re-sync" button, or
+    // the product-updated webhook) must never silently undo the admin's
+    // own editorial work. Earlier versions of this function reapplied the
+    // full first-import column set here — title/description/price/active/
+    // featured all included — so any re-sync (including an automatic one
+    // from the webhook) reset a published product back to an inactive,
+    // description-less draft. Confirmed as the cause of products
+    // "disappearing" after being published. Only currency/stock/
+    // made_to_order/lead_time are safe to always refresh here (structural
+    // POD facts, not editorial content); everything else is admin-owned
+    // once the product exists and is left alone.
     productId = existing.id;
     slug = existing.slug;
-    const { error } = await admin.from("products").update(columns).eq("id", productId);
+    const { error } = await admin
+      .from("products")
+      .update({ currency: "USD", stock: 0, made_to_order: true, lead_time: "5-7 business days (printed to order)", printful_product_id: product.id })
+      .eq("id", productId);
     if (error) return { ok: false, status: 500, error: `Could not update product: ${error.message}` };
   } else {
+    const columns = {
+      title: product.name,
+      excerpt: product.name.slice(0, 140),
+      description: "",
+      price: basePrice,
+      currency: "USD",
+      sku: syncedVariants[0].sku || String(product.id),
+      stock: 0,
+      made_to_order: true,
+      lead_time: "5-7 business days (printed to order)",
+      printful_product_id: product.id,
+      active: false,
+      featured: false,
+      customizable: false,
+    };
     let candidateSlug = slugify(product.name);
     let suffix = 0;
     for (;;) {
