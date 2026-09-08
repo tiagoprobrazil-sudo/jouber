@@ -27,6 +27,8 @@ const AdminProducts = lazy(() => import("@/pages/admin/Products"));
 const AdminProductEditor = lazy(() => import("@/pages/admin/ProductEditor"));
 const AdminMedia = lazy(() => import("@/pages/admin/Media"));
 const AdminOrders = lazy(() => import("@/pages/admin/Orders"));
+const AdminCoupons = lazy(() => import("@/pages/admin/Coupons"));
+const AdminCouponEditor = lazy(() => import("@/pages/admin/CouponEditor"));
 const AdminCategories = lazy(() => import("@/pages/admin/Categories"));
 const AdminContent = lazy(() => import("@/pages/admin/Content"));
 const AdminPrintful = lazy(() => import("@/pages/admin/Printful"));
@@ -76,6 +78,9 @@ export default function App() {
             <Route path="products/:id" element={<AdminProductEditor />} />
             <Route path="media" element={<AdminMedia />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="coupons" element={<AdminCoupons />} />
+            <Route path="coupons/new" element={<AdminCouponEditor />} />
+            <Route path="coupons/:id" element={<AdminCouponEditor />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="content" element={<AdminContent />} />
             <Route path="printful" element={<AdminPrintful />} />

@@ -170,7 +170,10 @@ export interface Order {
   customerEmail: string;
   status: OrderStatus;
   items: OrderItem[];
+  /** The final amount charged (items + shipping - discount, despite the name — mirrors the `orders.subtotal` column). */
   subtotal: number;
+  couponCodes?: string[];
+  discountAmount?: number;
   /** Set once this order's Printful-fulfilled items were submitted for printing — see lib/printful. */
   printfulOrderId?: number;
   trackingNumber?: string;
@@ -198,6 +201,52 @@ export interface Profile {
   email: string;
   fullName?: string;
   role: "admin" | "customer";
+}
+
+export type CouponDiscountType = "percent" | "fixed_cart" | "fixed_product";
+
+/**
+ * A discount coupon, modeled field-for-field on WooCommerce's coupon
+ * data panel (General / Usage restriction / Usage limits) — see
+ * src/pages/admin/CouponEditor.tsx and supabase/functions/_shared/couponEngine.ts.
+ */
+export interface Coupon {
+  id: ID;
+  /** Always stored upper-cased/trimmed; matched case-insensitively at checkout. */
+  code: string;
+  description?: string;
+
+  discountType: CouponDiscountType;
+  amount: number;
+  /** Waives the computed shipping cost at checkout when applied (see couponColumns' comment in repository.ts). */
+  freeShipping: boolean;
+  /** ISO date (yyyy-mm-dd) — the coupon stops working after this date. */
+  expiryDate?: string;
+
+  minimumAmount?: number;
+  maximumAmount?: number;
+  /** When true, this coupon can't be combined with any other coupon in the same order. */
+  individualUseOnly: boolean;
+  excludeSaleItems: boolean;
+  /** Product ids this coupon is restricted to (empty = all products). */
+  productIds: string[];
+  excludedProductIds: string[];
+  /** Category slugs this coupon is restricted to (empty = all categories). */
+  productCategories: string[];
+  excludedProductCategories: string[];
+  /** Email addresses (or wildcard patterns like "*@domain.com") allowed to use this coupon; empty = anyone. */
+  allowedEmails: string[];
+
+  /** Total redemptions allowed across all customers; undefined = unlimited. */
+  usageLimit?: number;
+  usageLimitPerUser?: number;
+  /** Caps how many cart line units the discount applies to, for percent/fixed_product coupons. */
+  limitUsageToXItems?: number;
+  usageCount: number;
+
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProductFilters {

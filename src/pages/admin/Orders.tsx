@@ -98,7 +98,14 @@ export default function Orders() {
                       "—"
                     )}
                   </td>
-                  <td className="px-5 py-3.5 text-right text-admin-ink">{formatPrice(o.subtotal)}</td>
+                  <td className="px-5 py-3.5 text-right text-admin-ink">
+                    {formatPrice(o.subtotal)}
+                    {Boolean(o.couponCodes?.length) && (
+                      <span className="mt-0.5 block font-mono text-[11px] text-olive-dark">
+                        {o.couponCodes!.join(", ")} (−{formatPrice(o.discountAmount ?? 0)})
+                      </span>
+                    )}
+                  </td>
                   <td className="px-5 py-3.5 text-right">
                     <div className="flex flex-col items-end gap-1">
                       {!o.printfulOrderId ? (

@@ -132,7 +132,8 @@ export async function finalizeOrder(
   if (paymentIntent.status !== "succeeded") {
     return { ok: false, status: 402, error: `Payment has not succeeded (status: ${paymentIntent.status})` };
   }
-  const expectedCents = Math.round((Number(draft.subtotal) + Number(draft.shipping_amount)) * 100);
+  const discountAmount = Number(draft.discount_amount ?? 0);
+  const expectedCents = Math.round((Number(draft.subtotal) - discountAmount + Number(draft.shipping_amount)) * 100);
   if (paymentIntent.amount !== expectedCents) {
     return { ok: false, status: 402, error: "Payment amount does not match order total" };
   }
@@ -142,13 +143,41 @@ export async function finalizeOrder(
     .insert({
       customer_email: draft.email,
       status: "pending",
-      subtotal: Number(draft.subtotal) + Number(draft.shipping_amount),
+      subtotal: Number(draft.subtotal) - discountAmount + Number(draft.shipping_amount),
       shipping_address: draft.shipping_address,
       payment_intent_id: paymentIntentId,
+      coupon_codes: draft.coupon_codes ?? [],
+      discount_amount: discountAmount,
     })
     .select("id")
     .single();
   if (orderError) return { ok: false, status: 500, error: `Could not create order: ${orderError.message}` };
+
+  // Record each applied coupon's redemption (coupon_usage row + bumped
+  // usage_count) now that the order genuinely exists — best-effort, same
+  // as the Printful submission below: the customer was already charged
+  // and the order is already recorded regardless of this succeeding.
+  const couponDiscounts = (draft.coupon_discounts ?? []) as { code: string; discountAmount: number }[];
+  if (couponDiscounts.length > 0) {
+    const { data: coupons } = await admin
+      .from("coupons")
+      .select("id, code, usage_count")
+      .in(
+        "code",
+        couponDiscounts.map((c) => c.code),
+      );
+    for (const entry of couponDiscounts) {
+      const coupon = (coupons ?? []).find((c) => c.code === entry.code);
+      if (!coupon) continue;
+      await admin.from("coupon_usage").insert({
+        coupon_id: coupon.id,
+        order_id: order.id,
+        email: draft.email,
+        discount_amount: entry.discountAmount,
+      });
+      await admin.from("coupons").update({ usage_count: coupon.usage_count + 1 }).eq("id", coupon.id);
+    }
+  }
 
   const items = draft.items as OrderItemInput[];
   const slugs = [...new Set(items.map((i) => i.productSlug))];

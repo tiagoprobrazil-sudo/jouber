@@ -11,6 +11,8 @@ import type { ShippingAddress, ShippingRate } from "@/lib/shipping/types";
 import { getPrintfulShippingCost } from "@/lib/printful";
 import { optimizedImageUrl } from "@/lib/utils/imageUrl";
 import { getStripe, isStripeConfigured, createPaymentIntent, createOrder } from "@/lib/payments/stripe";
+import { useCouponValidation } from "@/lib/hooks/useCouponValidation";
+import { CouponForm } from "@/components/cart/CouponForm";
 import { Button } from "@/components/ui/Button";
 
 const EMPTY_ADDRESS: ShippingAddress = {
@@ -76,9 +78,10 @@ function StripePaymentForm({
 }
 
 export default function Checkout() {
-  const { lines, subtotal, clear } = useCart();
+  const { lines, subtotal, clear, couponCodes } = useCart();
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS);
+  const coupons = useCouponValidation(email);
 
   const atelierLines = lines.filter((l) => !isPrintfulLine(l));
   const printfulLines = lines.filter(isPrintfulLine);
@@ -106,8 +109,11 @@ export default function Checkout() {
 
   const selectedRate = shippoRates?.find((r) => r.id === selectedRateId) ?? null;
   const shippingReady = isPickup || ((!needsShippo || Boolean(selectedRate)) && (!needsPrintfulShipping || printfulShippingAmount != null));
-  const shippingTotal = isPickup ? 0 : (selectedRate?.amount ?? 0) + (printfulShippingAmount ?? 0);
-  const total = subtotal + shippingTotal;
+  const rawShippingTotal = isPickup ? 0 : (selectedRate?.amount ?? 0) + (printfulShippingAmount ?? 0);
+  // A coupon's "Allow free shipping" waives the computed shipping cost —
+  // see the coupons.free_shipping column comment in 0015_coupons.sql.
+  const shippingTotal = coupons.freeShipping ? 0 : rawShippingTotal;
+  const total = Math.max(0, subtotal - coupons.discountAmount + shippingTotal);
 
   // Once a full shipping quote is in (both parts if the cart has both kinds
   // of lines), start (or restart, if the total changes) a PaymentIntent.
@@ -131,6 +137,7 @@ export default function Checkout() {
       // column) — the street/city/etc. fields are left blank since they
       // were never collected for a pickup order.
       shippingAddress: isPickup ? { ...address, street1: "Local pickup — no shipping address collected" } : address,
+      couponCodes,
       items: lines.map((l) => ({
         productSlug: l.productSlug,
         productTitle: l.title,
@@ -455,6 +462,11 @@ export default function Checkout() {
                   <Info size={17} strokeWidth={1.5} className="mt-0.5 shrink-0 text-warmgray" />
                   <p>Payment processing is not yet connected for this preview — no order is placed by this form today.</p>
                 </div>
+              ) : shippingReady && total > 0 && total < 0.5 ? (
+                <div className="flex items-start gap-3 border border-stone-dark bg-ivory-dim p-4 font-sans text-sm text-warmgray-dark">
+                  <Info size={17} strokeWidth={1.5} className="mt-0.5 shrink-0 text-warmgray" />
+                  <p>This order's total is below the $0.50 card-payment minimum — please contact us directly to complete it.</p>
+                </div>
               ) : !shippingReady ? (
                 <p className="font-sans text-sm text-warmgray">Choose a shipping method above to continue to payment.</p>
               ) : piLoading || !clientSecret ? (
@@ -511,10 +523,21 @@ export default function Checkout() {
                 <span className="text-warmgray">Subtotal</span>
                 <span className="text-charcoal">{formatPrice(subtotal)}</span>
               </div>
+              {coupons.discountAmount > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-warmgray">Discount</span>
+                  <span className="text-olive-dark">−{formatPrice(coupons.discountAmount)}</span>
+                </div>
+              )}
               {isPickup ? (
                 <div className="flex items-center justify-between">
                   <span className="text-warmgray">Local pickup</span>
                   <span className="text-charcoal">Free</span>
+                </div>
+              ) : coupons.freeShipping ? (
+                <div className="flex items-center justify-between">
+                  <span className="text-warmgray">Shipping</span>
+                  <span className="text-olive-dark">Free</span>
                 </div>
               ) : needsShippo && needsPrintfulShipping ? (
                 <>
@@ -538,6 +561,8 @@ export default function Checkout() {
                 <span className="text-charcoal">{formatPrice(total)}</span>
               </div>
             </div>
+
+            <CouponForm result={coupons} loading={coupons.loading} />
           </div>
         </div>
       </div>

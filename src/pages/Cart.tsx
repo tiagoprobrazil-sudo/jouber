@@ -2,11 +2,14 @@ import { Link } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { SeoHead } from "@/components/layout/SeoHead";
 import { CartLineItem } from "@/components/cart/CartLineItem";
+import { CouponForm } from "@/components/cart/CouponForm";
 import { ButtonLink } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils/format";
+import { useCouponValidation } from "@/lib/hooks/useCouponValidation";
 
 export default function Cart() {
   const { lines, subtotal } = useCart();
+  const coupons = useCouponValidation();
 
   return (
     <>
@@ -30,11 +33,24 @@ export default function Cart() {
 
             <div className="h-fit border border-stone-dark p-7">
               <h2 className="font-serif text-xl">Order Summary</h2>
-              <div className="mt-5 flex items-center justify-between font-sans text-sm">
-                <span className="text-warmgray">Subtotal</span>
-                <span className="text-charcoal">{formatPrice(subtotal)}</span>
+              <div className="mt-5 space-y-2 font-sans text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-warmgray">Subtotal</span>
+                  <span className="text-charcoal">{formatPrice(subtotal)}</span>
+                </div>
+                {coupons.discountAmount > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-warmgray">Discount</span>
+                    <span className="text-olive-dark">−{formatPrice(coupons.discountAmount)}</span>
+                  </div>
+                )}
               </div>
               <p className="mt-2 font-sans text-xs text-warmgray">Shipping and taxes calculated at checkout.</p>
+
+              <div className="mt-5">
+                <CouponForm result={coupons} loading={coupons.loading} />
+              </div>
+
               <ButtonLink to="/checkout" className="mt-6 w-full">
                 Checkout
               </ButtonLink>

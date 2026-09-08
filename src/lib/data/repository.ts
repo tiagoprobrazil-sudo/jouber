@@ -26,6 +26,8 @@ import type {
   OrderItem,
   MediaItem,
   NewsletterSubscriber,
+  Coupon,
+  CouponDiscountType,
 } from "@/lib/data/types";
 import { optimizeImageForUpload } from "@/lib/utils/optimizeImage";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -38,6 +40,7 @@ import {
 import { reviews as seedReviews } from "@/lib/data/mock/reviews";
 import { orders as seedOrders } from "@/lib/data/mock/orders";
 import { media as seedMedia } from "@/lib/data/mock/media";
+import { coupons as seedCoupons } from "@/lib/data/mock/coupons";
 import { getCollection, setCollection } from "@/lib/data/localStore";
 
 const LATENCY_MS = 180;
@@ -835,6 +838,8 @@ export async function getOrders(): Promise<Order[]> {
       customer_email: string;
       status: Order["status"];
       subtotal: number;
+      coupon_codes: string[] | null;
+      discount_amount: number | null;
       printful_order_id: number | null;
       tracking_number: string | null;
       tracking_url: string | null;
@@ -858,6 +863,8 @@ export async function getOrders(): Promise<Order[]> {
         }),
       ),
       subtotal: Number(row.subtotal),
+      couponCodes: row.coupon_codes ?? undefined,
+      discountAmount: row.discount_amount != null ? Number(row.discount_amount) : undefined,
       printfulOrderId: row.printful_order_id ?? undefined,
       trackingNumber: row.tracking_number ?? undefined,
       trackingUrl: row.tracking_url ?? undefined,
@@ -961,6 +968,151 @@ export async function subscribeToNewsletter(email: string): Promise<NewsletterSu
   const created: NewsletterSubscriber = { id: nextId("news"), email, createdAt: new Date().toISOString() };
   setCollection("newsletter_subscribers", [created, ...list]);
   return delay(created);
+}
+
+// --------------------------------------------------------------------------
+// Coupons (admin CRUD only — validating a code against a live cart at
+// checkout goes through lib/coupons.ts, which calls the validate-coupon
+// Edge Function so the rule engine and product/category data never leave
+// the server; see supabase/functions/_shared/couponEngine.ts).
+// --------------------------------------------------------------------------
+
+interface CouponRow {
+  id: string;
+  code: string;
+  description: string | null;
+  discount_type: CouponDiscountType;
+  amount: number;
+  free_shipping: boolean;
+  expiry_date: string | null;
+  minimum_amount: number | null;
+  maximum_amount: number | null;
+  individual_use_only: boolean;
+  exclude_sale_items: boolean;
+  product_ids: string[];
+  excluded_product_ids: string[];
+  product_categories: string[];
+  excluded_product_categories: string[];
+  allowed_emails: string[];
+  usage_limit: number | null;
+  usage_limit_per_user: number | null;
+  limit_usage_to_x_items: number | null;
+  usage_count: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+function mapCouponRow(row: CouponRow): Coupon {
+  return {
+    id: row.id,
+    code: row.code,
+    description: row.description ?? undefined,
+    discountType: row.discount_type,
+    amount: Number(row.amount),
+    freeShipping: row.free_shipping,
+    expiryDate: row.expiry_date ?? undefined,
+    minimumAmount: row.minimum_amount != null ? Number(row.minimum_amount) : undefined,
+    maximumAmount: row.maximum_amount != null ? Number(row.maximum_amount) : undefined,
+    individualUseOnly: row.individual_use_only,
+    excludeSaleItems: row.exclude_sale_items,
+    productIds: row.product_ids ?? [],
+    excludedProductIds: row.excluded_product_ids ?? [],
+    productCategories: row.product_categories ?? [],
+    excludedProductCategories: row.excluded_product_categories ?? [],
+    allowedEmails: row.allowed_emails ?? [],
+    usageLimit: row.usage_limit ?? undefined,
+    usageLimitPerUser: row.usage_limit_per_user ?? undefined,
+    limitUsageToXItems: row.limit_usage_to_x_items ?? undefined,
+    usageCount: row.usage_count,
+    active: row.active,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function couponColumns(data: Partial<Omit<Coupon, "id" | "usageCount" | "createdAt" | "updatedAt">>) {
+  return {
+    ...(data.code !== undefined && { code: data.code.trim().toUpperCase() }),
+    ...(data.description !== undefined && { description: data.description || null }),
+    ...(data.discountType !== undefined && { discount_type: data.discountType }),
+    ...(data.amount !== undefined && { amount: data.amount }),
+    ...(data.freeShipping !== undefined && { free_shipping: data.freeShipping }),
+    ...(data.expiryDate !== undefined && { expiry_date: data.expiryDate || null }),
+    ...(data.minimumAmount !== undefined && { minimum_amount: data.minimumAmount ?? null }),
+    ...(data.maximumAmount !== undefined && { maximum_amount: data.maximumAmount ?? null }),
+    ...(data.individualUseOnly !== undefined && { individual_use_only: data.individualUseOnly }),
+    ...(data.excludeSaleItems !== undefined && { exclude_sale_items: data.excludeSaleItems }),
+    ...(data.productIds !== undefined && { product_ids: data.productIds }),
+    ...(data.excludedProductIds !== undefined && { excluded_product_ids: data.excludedProductIds }),
+    ...(data.productCategories !== undefined && { product_categories: data.productCategories }),
+    ...(data.excludedProductCategories !== undefined && { excluded_product_categories: data.excludedProductCategories }),
+    ...(data.allowedEmails !== undefined && { allowed_emails: data.allowedEmails }),
+    ...(data.usageLimit !== undefined && { usage_limit: data.usageLimit ?? null }),
+    ...(data.usageLimitPerUser !== undefined && { usage_limit_per_user: data.usageLimitPerUser ?? null }),
+    ...(data.limitUsageToXItems !== undefined && { limit_usage_to_x_items: data.limitUsageToXItems ?? null }),
+    ...(data.active !== undefined && { active: data.active }),
+  };
+}
+
+export async function getCoupons(): Promise<Coupon[]> {
+  if (isSupabaseConfigured) {
+    const { data, error } = await db().from("coupons").select("*").order("created_at", { ascending: false });
+    if (error) throw error;
+    return (data as CouponRow[]).map(mapCouponRow);
+  }
+  const list = getCollection("coupons", seedCoupons);
+  return delay([...list].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)));
+}
+
+export async function getCouponById(id: string): Promise<Coupon | null> {
+  if (isSupabaseConfigured) {
+    const { data, error } = await db().from("coupons").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    return data ? mapCouponRow(data as CouponRow) : null;
+  }
+  const found = getCollection("coupons", seedCoupons).find((c) => c.id === id) ?? null;
+  return delay(found);
+}
+
+export async function createCoupon(data: Omit<Coupon, "id" | "usageCount" | "createdAt" | "updatedAt">): Promise<Coupon> {
+  if (isSupabaseConfigured) {
+    const { data: row, error } = await db().from("coupons").insert(couponColumns(data)).select().single();
+    if (error) throw error;
+    return mapCouponRow(row as CouponRow);
+  }
+  const list = getCollection("coupons", seedCoupons);
+  const now = new Date().toISOString();
+  const created: Coupon = { ...data, code: data.code.trim().toUpperCase(), id: nextId("coupon"), usageCount: 0, createdAt: now, updatedAt: now };
+  setCollection("coupons", [created, ...list]);
+  return delay(created);
+}
+
+export async function updateCoupon(id: string, patch: Partial<Coupon>): Promise<Coupon> {
+  if (isSupabaseConfigured) {
+    const { data: row, error } = await db().from("coupons").update(couponColumns(patch)).eq("id", id).select().single();
+    if (error) throw error;
+    return mapCouponRow(row as CouponRow);
+  }
+  const list = getCollection("coupons", seedCoupons);
+  const idx = list.findIndex((c) => c.id === id);
+  if (idx === -1) throw new Error("Coupon not found");
+  const updated: Coupon = { ...list[idx], ...patch, ...(patch.code !== undefined && { code: patch.code.trim().toUpperCase() }), updatedAt: new Date().toISOString() };
+  const next = [...list];
+  next[idx] = updated;
+  setCollection("coupons", next);
+  return delay(updated);
+}
+
+export async function deleteCoupon(id: string): Promise<void> {
+  if (isSupabaseConfigured) {
+    const { error } = await db().from("coupons").delete().eq("id", id);
+    if (error) throw error;
+    return;
+  }
+  const list = getCollection("coupons", seedCoupons).filter((c) => c.id !== id);
+  setCollection("coupons", list);
+  return delay(undefined);
 }
 
 // --------------------------------------------------------------------------

@@ -23,6 +23,8 @@ export interface CartLine {
 interface CartState {
   lines: CartLine[];
   isDrawerOpen: boolean;
+  /** Coupon codes currently applied to this cart — the real discount for each is computed server-side, see lib/coupons.ts. */
+  couponCodes: string[];
 }
 
 type CartAction =
@@ -33,9 +35,13 @@ type CartAction =
   | { type: "CLEAR" }
   | { type: "OPEN_DRAWER" }
   | { type: "CLOSE_DRAWER" }
-  | { type: "HYDRATE"; lines: CartLine[] };
+  | { type: "HYDRATE"; lines: CartLine[] }
+  | { type: "APPLY_COUPON"; code: string }
+  | { type: "REMOVE_COUPON"; code: string }
+  | { type: "HYDRATE_COUPONS"; codes: string[] };
 
 const STORAGE_KEY = "ass:cart:v1";
+const COUPONS_STORAGE_KEY = "ass:cart:coupons:v1";
 
 function lineKey(productSlug: string, variant?: string): string {
   return variant ? `${productSlug}::${variant}` : productSlug;
@@ -70,11 +76,20 @@ function reducer(state: CartState, action: CartAction): CartState {
           .filter((l) => l.quantity > 0),
       };
     case "CLEAR":
-      return { ...state, lines: [] };
+      return { ...state, lines: [], couponCodes: [] };
     case "OPEN_DRAWER":
       return { ...state, isDrawerOpen: true };
     case "CLOSE_DRAWER":
       return { ...state, isDrawerOpen: false };
+    case "APPLY_COUPON": {
+      const code = action.code.trim().toUpperCase();
+      if (!code || state.couponCodes.includes(code)) return state;
+      return { ...state, couponCodes: [...state.couponCodes, code] };
+    }
+    case "REMOVE_COUPON":
+      return { ...state, couponCodes: state.couponCodes.filter((c) => c !== action.code) };
+    case "HYDRATE_COUPONS":
+      return { ...state, couponCodes: action.codes };
     default:
       return state;
   }
@@ -85,6 +100,7 @@ interface CartContextValue {
   itemCount: number;
   subtotal: number;
   isDrawerOpen: boolean;
+  couponCodes: string[];
   addItem: (line: Omit<CartLine, "id">, options?: { openDrawer?: boolean }) => void;
   removeItem: (id: string) => void;
   increment: (id: string) => void;
@@ -92,17 +108,21 @@ interface CartContextValue {
   clear: () => void;
   openDrawer: () => void;
   closeDrawer: () => void;
+  applyCoupon: (code: string) => void;
+  removeCoupon: (code: string) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, { lines: [], isDrawerOpen: false });
+  const [state, dispatch] = useReducer(reducer, { lines: [], isDrawerOpen: false, couponCodes: [] });
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) dispatch({ type: "HYDRATE", lines: JSON.parse(raw) as CartLine[] });
+      const rawCoupons = window.localStorage.getItem(COUPONS_STORAGE_KEY);
+      if (rawCoupons) dispatch({ type: "HYDRATE_COUPONS", codes: JSON.parse(rawCoupons) as string[] });
     } catch {
       // ignore malformed cart data
     }
@@ -112,6 +132,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state.lines));
   }, [state.lines]);
 
+  useEffect(() => {
+    window.localStorage.setItem(COUPONS_STORAGE_KEY, JSON.stringify(state.couponCodes));
+  }, [state.couponCodes]);
+
   const value = useMemo<CartContextValue>(() => {
     const itemCount = state.lines.reduce((sum, l) => sum + l.quantity, 0);
     const subtotal = state.lines.reduce((sum, l) => sum + l.quantity * l.price, 0);
@@ -120,6 +144,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       itemCount,
       subtotal,
       isDrawerOpen: state.isDrawerOpen,
+      couponCodes: state.couponCodes,
       addItem: (line, options) => dispatch({ type: "ADD", line, openDrawer: options?.openDrawer }),
       removeItem: (id) => dispatch({ type: "REMOVE", id }),
       increment: (id) => dispatch({ type: "INCREMENT", id }),
@@ -127,6 +152,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       clear: () => dispatch({ type: "CLEAR" }),
       openDrawer: () => dispatch({ type: "OPEN_DRAWER" }),
       closeDrawer: () => dispatch({ type: "CLOSE_DRAWER" }),
+      applyCoupon: (code) => dispatch({ type: "APPLY_COUPON", code }),
+      removeCoupon: (code) => dispatch({ type: "REMOVE_COUPON", code }),
     };
   }, [state]);
 

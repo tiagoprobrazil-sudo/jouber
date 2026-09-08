@@ -36,6 +36,8 @@ export interface CreatePaymentIntentInput {
   shippingAmount: number;
   shippingAddress: ShippingAddress;
   items: OrderItemInput[];
+  /** Coupon codes currently applied to the cart — re-validated and re-priced server-side, see supabase/functions/_shared/couponEngine.ts. */
+  couponCodes?: string[];
 }
 
 /**
