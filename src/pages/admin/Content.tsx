@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { getSiteContent, updateSiteContent } from "@/lib/data/repository";
+import { getSiteContent, updateSiteContent, getProductCategories } from "@/lib/data/repository";
+import type { ProductCategory } from "@/lib/data/types";
 import {
   SITE_CONTENT_DEFAULTS,
   type SiteContentKey,
@@ -75,6 +76,33 @@ function Field({ label, value, onChange, multiline = false, rows = 3 }: {
   );
 }
 
+function SelectField({ label, hint, value, onChange, options }: {
+  label: string;
+  hint?: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">
+        {label} {hint && <span className="normal-case text-admin-muted/70">— {hint}</span>}
+      </label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 /** Editable display headline broken across lines — one line per row, rendered with a line break between each on the public page. */
 function LinesField({ label, lines, onChange }: { label: string; lines: string[]; onChange: (lines: string[]) => void }) {
   return (
@@ -118,8 +146,24 @@ function ParagraphsField({ label, paragraphs, onChange }: { label: string; parag
 
 function HeroSection() {
   const { value, setValue, saving, saved, save } = useContentForm("hero");
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+
+  useEffect(() => {
+    getProductCategories().then(setCategories);
+  }, []);
+
   return (
     <Panel title="Hero" hint="The first screen on the Home page." onSave={save} saving={saving} saved={saved}>
+      <SelectField
+        label="Animated slider category"
+        hint="pulls up to 4 products from this category into a Slider-Revolution-style animated banner, replacing the video below. Leave as “None” to keep the static video hero."
+        value={value.categorySlug}
+        onChange={(v) => setValue({ ...value, categorySlug: v })}
+        options={[
+          { value: "", label: "None — use the static video hero" },
+          ...categories.map((c) => ({ value: c.slug, label: c.name })),
+        ]}
+      />
       <Field label="Eyebrow" value={value.eyebrow} onChange={(v) => setValue({ ...value, eyebrow: v })} />
       <LinesField label="Headline" lines={value.headlineLines} onChange={(lines) => setValue({ ...value, headlineLines: lines })} />
       <Field label="Body" value={value.body} onChange={(v) => setValue({ ...value, body: v })} multiline />

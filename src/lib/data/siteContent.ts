@@ -17,6 +17,13 @@ export interface HeroContent {
   body: string;
   ctaPrimaryLabel: string;
   ctaSecondaryLabel: string;
+  /**
+   * Product category slug to auto-populate the Hero's animated slider
+   * from (see Hero.tsx) — up to 4 slides, each built from a product's
+   * cover photo, title and price. Empty string (the default) keeps the
+   * original static video hero instead.
+   */
+  categorySlug: string;
 }
 
 export interface IntroContent {
@@ -88,6 +95,7 @@ export const SITE_CONTENT_DEFAULTS = {
     body: "Devotional art created through faith, tradition and craftsmanship.",
     ctaPrimaryLabel: "Explore the Collection",
     ctaSecondaryLabel: "Discover the Atelier",
+    categorySlug: "",
   } satisfies HeroContent,
 
   intro: {

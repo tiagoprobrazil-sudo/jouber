@@ -191,6 +191,30 @@ main > section {
   to { transform: scale(1.015); }
 }
 
+/* Product hero slideshow (see components/home/Hero.tsx) — a slow Ken
+   Burns drift on whichever slide is active, and a linear fill on its
+   progress bar timed to match the autoplay interval. */
+.hero-slider__media {
+  transform: scale(1.1);
+}
+.hero-slider__media--active {
+  animation: hero-slider-kenburns 8s var(--ease-editorial) both;
+}
+@keyframes hero-slider-kenburns {
+  from { transform: scale(1.12); }
+  to { transform: scale(1.02); }
+}
+.hero-slider__progress {
+  width: 0%;
+  animation-name: hero-slider-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+@keyframes hero-slider-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
 @media (min-width: 1024px) {
   .home-commercial::before,
   .home-letter::before {
@@ -270,6 +294,8 @@ main > section {
 
 @media (prefers-reduced-motion: reduce) {
   .hero-clean__media, .testimonial-enter { animation: none; }
+  .hero-slider__media--active, .hero-slider__progress { animation: none; }
+  .hero-slider__media { transform: none; }
   .category-card:hover .category-card__media,
   .group:hover .product-card__media,
   .group:focus-visible .product-card__media { transform: none; }

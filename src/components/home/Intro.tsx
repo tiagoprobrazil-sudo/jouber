@@ -4,8 +4,9 @@ import { PageContainer } from "@/components/ui/PageContainer";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
 import { SectionNumber } from "@/components/ui/SectionNumber";
-import { editorialImages } from "@/lib/data/mock/images";
 import { useSiteContent } from "@/lib/data/siteContent";
+import heroVideo from "@/assets/videos/hero-devotion.mp4";
+import heroVideoPoster from "@/assets/videos/hero-devotion-poster.webp";
 
 export function Intro() {
   const content = useSiteContent("intro");
@@ -34,11 +35,28 @@ export function Intro() {
         >
           <figure>
             <div className="aspect-[4/5] overflow-hidden bg-stone">
+              {/* Atelier footage of the hand-painted statues, moved here from
+                  the Hero (which now shows either the animated product
+                  slider or a static still — see Hero.tsx). Visitors who
+                  request reduced motion get the video's own first frame as
+                  a still image instead of an indefinitely looping animation. */}
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+                poster={heroVideoPoster}
+                aria-label="Gloved hands finishing the paint on a devotional statue, brushes laid out nearby"
+                className="editorial-image object-[center_38%] motion-reduce:hidden"
+              >
+                <source src={heroVideo} type="video/mp4" />
+              </video>
               <img
-                src={editorialImages.processHands}
+                src={heroVideoPoster}
                 alt="Gloved hands finishing the paint on a devotional statue, brushes laid out nearby"
                 loading="lazy"
-                className="editorial-image object-[center_38%]"
+                className="editorial-image hidden object-[center_38%] motion-reduce:block"
               />
             </div>
             <figcaption className="mt-3 flex items-center justify-between gap-4 font-sans text-[11px] leading-relaxed text-warmgray">
