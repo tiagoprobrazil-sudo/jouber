@@ -6,8 +6,10 @@ import {
   SITE_CONTENT_DEFAULTS,
   type SiteContentKey,
   type ProcessStep,
+  type HeroContent,
 } from "@/lib/data/siteContent";
 import { Button } from "@/components/ui/Button";
+import { HeroSlidesField } from "@/components/admin/HeroSlidesField";
 
 /** Loads/saves one site_content key, pre-filled with its current default (hardcoded) copy until a saved edit loads. */
 function useContentForm<K extends SiteContentKey>(key: K) {
@@ -117,6 +119,40 @@ function CategoryToggleField({ label, hint, categories, selected, onChange }: {
   );
 }
 
+/** Two-way toggle between the Hero's image-slider and category-slider sources. */
+function HeroModeToggle({ mode, onChange }: { mode: HeroContent["mode"]; onChange: (mode: HeroContent["mode"]) => void }) {
+  const options: { value: HeroContent["mode"]; label: string }[] = [
+    { value: "images", label: "Custom Images" },
+    { value: "category", label: "Product Category" },
+  ];
+  return (
+    <div>
+      <label className="mb-2 block font-sans text-xs uppercase tracking-wide text-admin-muted">
+        Slider source <span className="normal-case text-admin-muted/70">— pick one</span>
+      </label>
+      <div className="flex flex-wrap gap-2">
+        {options.map((o) => {
+          const isSelected = mode === o.value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              aria-pressed={isSelected}
+              onClick={() => onChange(o.value)}
+              className={`flex items-center gap-1.5 border px-3 py-1.5 font-sans text-xs transition-colors ${
+                isSelected ? "border-charcoal bg-charcoal text-ivory" : "border-admin-border text-admin-ink hover:border-charcoal"
+              }`}
+            >
+              {isSelected && <Check size={12} strokeWidth={2} />}
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /** Editable display headline broken across lines — one line per row, rendered with a line break between each on the public page. */
 function LinesField({ label, lines, onChange }: { label: string; lines: string[]; onChange: (lines: string[]) => void }) {
   return (
@@ -168,19 +204,33 @@ function HeroSection() {
 
   return (
     <Panel title="Hero" hint="The first screen on the Home page." onSave={save} saving={saving} saved={saved}>
-      <CategoryToggleField
-        label="Animated slider categories"
-        hint="pulls up to 4 products from these categories into a Slider-Revolution-style animated banner, replacing the video below. Leave none selected to keep the static video hero."
-        categories={categories}
-        selected={value.categorySlugs}
-        onChange={(slugs) => setValue({ ...value, categorySlugs: slugs })}
-      />
-      <Field label="Eyebrow" value={value.eyebrow} onChange={(v) => setValue({ ...value, eyebrow: v })} />
-      <LinesField label="Headline" lines={value.headlineLines} onChange={(lines) => setValue({ ...value, headlineLines: lines })} />
-      <Field label="Body" value={value.body} onChange={(v) => setValue({ ...value, body: v })} multiline />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Primary button label" value={value.ctaPrimaryLabel} onChange={(v) => setValue({ ...value, ctaPrimaryLabel: v })} />
-        <Field label="Secondary link label" value={value.ctaSecondaryLabel} onChange={(v) => setValue({ ...value, ctaSecondaryLabel: v })} />
+      <HeroModeToggle mode={value.mode} onChange={(mode) => setValue({ ...value, mode })} />
+
+      {value.mode === "images" ? (
+        <HeroSlidesField images={value.images} onChange={(images) => setValue({ ...value, images })} />
+      ) : (
+        <CategoryToggleField
+          label="Categories"
+          hint="pulls up to 4 products from these categories into the slider"
+          categories={categories}
+          selected={value.categorySlugs}
+          onChange={(slugs) => setValue({ ...value, categorySlugs: slugs })}
+        />
+      )}
+
+      <div className="border-t border-admin-border-soft pt-4">
+        <p className="mb-4 font-sans text-xs text-admin-muted">
+          Fallback text below — shown only when the slider above has nothing to show yet (no slides added, or no products in the chosen categories).
+        </p>
+        <div className="space-y-4">
+          <Field label="Eyebrow" value={value.eyebrow} onChange={(v) => setValue({ ...value, eyebrow: v })} />
+          <LinesField label="Headline" lines={value.headlineLines} onChange={(lines) => setValue({ ...value, headlineLines: lines })} />
+          <Field label="Body" value={value.body} onChange={(v) => setValue({ ...value, body: v })} multiline />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Primary button label" value={value.ctaPrimaryLabel} onChange={(v) => setValue({ ...value, ctaPrimaryLabel: v })} />
+            <Field label="Secondary link label" value={value.ctaSecondaryLabel} onChange={(v) => setValue({ ...value, ctaSecondaryLabel: v })} />
+          </div>
+        </div>
       </div>
     </Panel>
   );

@@ -11,6 +11,12 @@
 import { useEffect, useState } from "react";
 import { getSiteContent } from "@/lib/data/repository";
 
+/** One slide of the Hero's manual image slider — a plain horizontal photo, no caption. */
+export interface HeroImage {
+  id: string;
+  url: string;
+}
+
 export interface HeroContent {
   eyebrow: string;
   headlineLines: string[];
@@ -18,12 +24,18 @@ export interface HeroContent {
   ctaPrimaryLabel: string;
   ctaSecondaryLabel: string;
   /**
-   * Product category slugs to auto-populate the Hero's animated slider
-   * from (see Hero.tsx) — up to 4 slides, pooled from every product in
-   * any of these categories, each built from a product's cover photo,
-   * title and price. Empty array (the default) keeps the original
-   * static video hero instead.
+   * Which source feeds the Hero's animated slider (see Hero.tsx):
+   * "images" shows `images` below as plain photo slides with no text
+   * over them; "category" pools up to 4 products from `categorySlugs`
+   * instead, each with its own title/price/CTA. Either way, if the
+   * chosen source is empty (or a category source has no products yet),
+   * the original static hero (eyebrow/headline/body/CTA below) is
+   * shown instead — never a blank or half-loaded hero.
    */
+  mode: "images" | "category";
+  /** Manual slides for `mode: "images"` — plain horizontal photos, admin-managed in /admin/content. */
+  images: HeroImage[];
+  /** Product category slugs for `mode: "category"` — pooled from every product in any of these categories. */
   categorySlugs: string[];
 }
 
@@ -96,6 +108,8 @@ export const SITE_CONTENT_DEFAULTS = {
     body: "Devotional art created through faith, tradition and craftsmanship.",
     ctaPrimaryLabel: "Explore the Collection",
     ctaSecondaryLabel: "Discover the Atelier",
+    mode: "images" as HeroContent["mode"],
+    images: [] as HeroImage[],
     categorySlugs: [] as string[],
   } satisfies HeroContent,
 

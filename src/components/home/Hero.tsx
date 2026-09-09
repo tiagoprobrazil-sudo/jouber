@@ -20,21 +20,26 @@ const AUTOPLAY_MS = 6500;
 const SWIPE_THRESHOLD_PX = 40;
 
 /**
- * An animated, Slider-Revolution-style banner pooled from one or more
- * product categories, chosen in /admin/content (Hero panel) — up to 4
- * slides, each a product's cover photo, title and price. Whichever
- * categories the admin picks are swapped in automatically the moment
- * they have at least one product between them (see getProducts'
- * default sort: featured first), so adding or re-featuring a piece
- * takes its place here with no code change. Until at least one
- * category is chosen (or none of them has products yet), a static
- * still + the CMS copy from /admin/content is shown instead — never a
- * blank or half-loaded hero. (The atelier footage that used to
- * autoplay here now lives in the "Atelier" section, Intro.tsx.)
+ * An animated Slider-Revolution-style banner with two admin-chosen
+ * sources (see /admin/content, Hero panel — HeroContent.mode):
+ * - "images": plain horizontal photos the admin uploads directly, shown
+ *   full-bleed with no text over them — just the slides.
+ * - "category": up to 4 products pooled from one or more product
+ *   categories, each with its own title/price/CTA (the original
+ *   version of this banner). Swapped in automatically the moment the
+ *   chosen categories have at least one product between them (see
+ *   getProducts' default sort: featured first), so adding or
+ *   re-featuring a piece takes its place here with no code change.
+ * Whichever source is picked, if it has nothing to show yet (no slides
+ * added, or no products in the chosen categories) a static still + the
+ * CMS copy from /admin/content is shown instead — never a blank or
+ * half-loaded hero. (The atelier footage that used to autoplay here
+ * now lives in the "Atelier" section, Intro.tsx.)
  */
 export function Hero() {
   const content = useSiteContent("hero");
   const prefersReducedMotion = usePrefersReducedMotion();
+  const isImageMode = content.mode === "images";
 
   const [products, setProducts] = useState<Product[] | null>(null);
   const [categoryNames, setCategoryNames] = useState<Map<string, string>>(new Map());
@@ -49,7 +54,7 @@ export function Hero() {
   const categorySlugsKey = content.categorySlugs.join(",");
 
   useEffect(() => {
-    if (!categorySlugsKey) {
+    if (isImageMode || !categorySlugsKey) {
       setProducts(null);
       return;
     }
@@ -76,11 +81,15 @@ export function Hero() {
     return () => {
       cancelled = true;
     };
-  }, [categorySlugsKey]);
+  }, [isImageMode, categorySlugsKey]);
 
-  const slides = products ?? [];
-  const slideCount = slides.length;
-  const isDynamic = Boolean(categorySlugsKey) && slideCount > 0;
+  const imageSlides = content.images;
+  const categorySlides = products ?? [];
+  const slideCount = isImageMode ? imageSlides.length : categorySlides.length;
+  const isDynamic = isImageMode ? slideCount > 0 : Boolean(categorySlugsKey) && slideCount > 0;
+  // Text (headline/price/CTA) only ever applies to the category source
+  // — plain image slides never carry an overlay, by design.
+  const showTextOverlay = !(isDynamic && isImageMode);
 
   // Auto-advance — restarts (and re-syncs the progress bar, keyed on
   // `index` too) every time the slide changes, whether by this timer, an
@@ -113,7 +122,7 @@ export function Hero() {
     else prev();
   }
 
-  const activeProduct = isDynamic ? slides[index] : null;
+  const activeProduct = isDynamic && !isImageMode ? categorySlides[index] : null;
   // A product may belong to several categories — show whichever of its
   // own categories was actually picked for the slider, not just its first.
   const activeCategorySlug = activeProduct?.categorySlugs.find((slug) => content.categorySlugs.includes(slug));
@@ -131,8 +140,32 @@ export function Hero() {
       onTouchEnd={handleTouchEnd}
     >
       <div className="absolute inset-0 overflow-hidden">
-        {isDynamic ? (
-          slides.map((product, i) => {
+        {isDynamic && isImageMode ? (
+          imageSlides.map((image, i) => {
+            const active = i === index;
+            return (
+              <div
+                key={image.id}
+                aria-hidden={!active}
+                className={cn(
+                  "absolute inset-0 transition-opacity duration-[1100ms] ease-[var(--ease-editorial)]",
+                  active ? "z-[1] opacity-100" : "pointer-events-none z-0 opacity-0",
+                )}
+              >
+                <img
+                  src={optimizedImageUrl(image.url, 1920, 16 / 9)}
+                  srcSet={optimizedImageSrcSet(image.url, 16 / 9)}
+                  sizes="100vw"
+                  alt=""
+                  aria-hidden="true"
+                  loading={i === 0 ? "eager" : "lazy"}
+                  className={cn("hero-slider__media h-full w-full object-cover object-center", active && "hero-slider__media--active")}
+                />
+              </div>
+            );
+          })
+        ) : isDynamic ? (
+          categorySlides.map((product, i) => {
             const active = i === index;
             return (
               <div
@@ -156,8 +189,8 @@ export function Hero() {
             );
           })
         ) : (
-          // Static fallback — shown until an admin picks a category for the
-          // animated slider above (see /admin/content). The atelier footage
+          // Static fallback — shown until the chosen source above (see
+          // /admin/content) has something to show. The atelier footage
           // that used to autoplay here now lives in the "Atelier" section
           // (Intro.tsx) instead.
           <img
@@ -180,96 +213,98 @@ export function Hero() {
         className="absolute -left-[8%] top-[18%] z-[2] h-auto w-[40rem] max-w-none object-contain opacity-[0.035] mix-blend-luminosity"
       />
 
-      <PageContainer className="editorial-grid relative z-10 min-h-[42rem] items-end pb-16 pt-28 sm:min-h-[44rem] sm:pb-20 sm:pt-32 lg:min-h-[46rem] lg:pb-24 xl:min-h-[min(50rem,96svh)]">
-        <div className="col-span-4 sm:col-span-7 lg:col-span-9">
-          {isDynamic && activeProduct ? (
-            <div key={activeProduct.id} className="animate-fade-in-up motion-reduce:animate-none" style={{ animationDelay: "150ms" }}>
-              {content.eyebrow && <p className="type-caption mb-3 text-stone/60">{content.eyebrow}</p>}
-              <SectionEyebrow tone="gold" className="mb-5 sm:mb-6">
-                {activeCategoryName ?? "Atelier Saint Sebastian"}
-              </SectionEyebrow>
+      {showTextOverlay && (
+        <PageContainer className="editorial-grid relative z-10 min-h-[42rem] items-end pb-16 pt-28 sm:min-h-[44rem] sm:pb-20 sm:pt-32 lg:min-h-[46rem] lg:pb-24 xl:min-h-[min(50rem,96svh)]">
+          <div className="col-span-4 sm:col-span-7 lg:col-span-9">
+            {isDynamic && activeProduct ? (
+              <div key={activeProduct.id} className="animate-fade-in-up motion-reduce:animate-none" style={{ animationDelay: "150ms" }}>
+                {content.eyebrow && <p className="type-caption mb-3 text-stone/60">{content.eyebrow}</p>}
+                <SectionEyebrow tone="gold" className="mb-5 sm:mb-6">
+                  {activeCategoryName ?? "Atelier Saint Sebastian"}
+                </SectionEyebrow>
 
-              <EditorialHeading
-                as="h1"
-                size="display-xl"
-                tone="light"
-                className="hero-clean__title max-w-[16ch] max-sm:text-[clamp(2.35rem,12vw,2.8rem)] lg:text-[4.1rem] xl:text-[4.5rem]"
-              >
-                {activeProduct.title}
-              </EditorialHeading>
+                <EditorialHeading
+                  as="h1"
+                  size="display-xl"
+                  tone="light"
+                  className="hero-clean__title max-w-[16ch] max-sm:text-[clamp(2.35rem,12vw,2.8rem)] lg:text-[4.1rem] xl:text-[4.5rem]"
+                >
+                  {activeProduct.title}
+                </EditorialHeading>
 
-              <div className="mt-6 grid grid-cols-4 items-end gap-x-4 gap-y-6 border-t border-white/20 pt-6 sm:mt-8 sm:grid-cols-8 sm:gap-x-6 lg:grid-cols-9 lg:gap-x-8">
-                <p className="type-body col-span-4 text-stone/90 sm:col-span-4 lg:col-span-3">{formatPrice(activeProduct.price)}</p>
+                <div className="mt-6 grid grid-cols-4 items-end gap-x-4 gap-y-6 border-t border-white/20 pt-6 sm:mt-8 sm:grid-cols-8 sm:gap-x-6 lg:grid-cols-9 lg:gap-x-8">
+                  <p className="type-body col-span-4 text-stone/90 sm:col-span-4 lg:col-span-3">{formatPrice(activeProduct.price)}</p>
 
-                <div className="col-span-4 flex flex-wrap items-center gap-x-6 gap-y-4 sm:col-span-4 lg:col-span-5 lg:col-start-5">
-                  <ButtonLink
-                    to={activeHref}
-                    variant="primary"
-                    icon={<ArrowRight aria-hidden="true" size={15} strokeWidth={1.5} />}
-                    className="!bg-ivory !text-charcoal hover:!bg-gold-soft"
-                  >
-                    Shop {activeCategoryName ?? "the Collection"}
-                  </ButtonLink>
-                  <TextLink to={`/product/${activeProduct.slug}`} className="text-ivory hover:text-gold-soft">
-                    View This Piece
-                  </TextLink>
+                  <div className="col-span-4 flex flex-wrap items-center gap-x-6 gap-y-4 sm:col-span-4 lg:col-span-5 lg:col-start-5">
+                    <ButtonLink
+                      to={activeHref}
+                      variant="primary"
+                      icon={<ArrowRight aria-hidden="true" size={15} strokeWidth={1.5} />}
+                      className="!bg-ivory !text-charcoal hover:!bg-gold-soft"
+                    >
+                      Shop {activeCategoryName ?? "the Collection"}
+                    </ButtonLink>
+                    <TextLink to={`/product/${activeProduct.slug}`} className="text-ivory hover:text-gold-soft">
+                      View This Piece
+                    </TextLink>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="animate-fade-in-up motion-reduce:animate-none" style={{ animationDelay: "220ms" }}>
+                <SectionEyebrow tone="light" className="mb-5 sm:mb-6">
+                  {content.eyebrow}
+                </SectionEyebrow>
+
+                <EditorialHeading as="h1" size="display-xl" tone="light" className="hero-clean__title max-sm:text-[clamp(2.35rem,12vw,2.8rem)] lg:text-[4.1rem] xl:text-[4.5rem]">
+                  {content.headlineLines.map((line, i) => (
+                    <span key={i} className="block sm:whitespace-nowrap">
+                      {line}
+                    </span>
+                  ))}
+                </EditorialHeading>
+
+                <div className="mt-6 grid grid-cols-4 items-end gap-x-4 gap-y-6 border-t border-white/20 pt-6 sm:mt-8 sm:grid-cols-8 sm:gap-x-6 lg:grid-cols-9 lg:gap-x-8">
+                  <p className="type-body col-span-4 max-w-[38ch] text-stone/90 sm:col-span-4 lg:col-span-3">{content.body}</p>
+
+                  <div className="col-span-4 flex flex-wrap items-center gap-x-6 gap-y-4 sm:col-span-4 lg:col-span-5 lg:col-start-5">
+                    <ButtonLink
+                      to="/shop"
+                      variant="primary"
+                      icon={<ArrowRight aria-hidden="true" size={15} strokeWidth={1.5} />}
+                      className="!bg-ivory !text-charcoal hover:!bg-gold-soft"
+                    >
+                      {content.ctaPrimaryLabel}
+                    </ButtonLink>
+                    <TextLink to="/artist" className="text-ivory hover:text-gold-soft">
+                      {content.ctaSecondaryLabel}
+                    </TextLink>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {isDynamic ? (
+            <p className="type-caption absolute right-5 top-[7.5rem] hidden font-mono text-stone/50 sm:block sm:top-[8.5rem] lg:right-12">
+              {String(index + 1).padStart(2, "0")} / {String(slideCount).padStart(2, "0")}
+            </p>
           ) : (
-            <div className="animate-fade-in-up motion-reduce:animate-none" style={{ animationDelay: "220ms" }}>
-              <SectionEyebrow tone="light" className="mb-5 sm:mb-6">
-                {content.eyebrow}
-              </SectionEyebrow>
-
-              <EditorialHeading as="h1" size="display-xl" tone="light" className="hero-clean__title max-sm:text-[clamp(2.35rem,12vw,2.8rem)] lg:text-[4.1rem] xl:text-[4.5rem]">
-                {content.headlineLines.map((line, i) => (
-                  <span key={i} className="block sm:whitespace-nowrap">
-                    {line}
-                  </span>
-                ))}
-              </EditorialHeading>
-
-              <div className="mt-6 grid grid-cols-4 items-end gap-x-4 gap-y-6 border-t border-white/20 pt-6 sm:mt-8 sm:grid-cols-8 sm:gap-x-6 lg:grid-cols-9 lg:gap-x-8">
-                <p className="type-body col-span-4 max-w-[38ch] text-stone/90 sm:col-span-4 lg:col-span-3">{content.body}</p>
-
-                <div className="col-span-4 flex flex-wrap items-center gap-x-6 gap-y-4 sm:col-span-4 lg:col-span-5 lg:col-start-5">
-                  <ButtonLink
-                    to="/shop"
-                    variant="primary"
-                    icon={<ArrowRight aria-hidden="true" size={15} strokeWidth={1.5} />}
-                    className="!bg-ivory !text-charcoal hover:!bg-gold-soft"
-                  >
-                    {content.ctaPrimaryLabel}
-                  </ButtonLink>
-                  <TextLink to="/artist" className="text-ivory hover:text-gold-soft">
-                    {content.ctaSecondaryLabel}
-                  </TextLink>
-                </div>
-              </div>
-            </div>
+            <p className="type-caption absolute bottom-5 right-5 hidden text-stone/60 sm:block lg:right-12">Devotional Art / Hand Finished</p>
           )}
-        </div>
-
-        {isDynamic ? (
-          <p className="type-caption absolute right-5 top-[7.5rem] hidden font-mono text-stone/50 sm:block sm:top-[8.5rem] lg:right-12">
-            {String(index + 1).padStart(2, "0")} / {String(slideCount).padStart(2, "0")}
-          </p>
-        ) : (
-          <p className="type-caption absolute bottom-5 right-5 hidden text-stone/60 sm:block lg:right-12">Devotional Art / Hand Finished</p>
-        )}
-      </PageContainer>
+        </PageContainer>
+      )}
 
       {isDynamic && slideCount > 1 && (
         <div className="absolute inset-x-0 bottom-0 z-10">
           <PageContainer className="flex items-center justify-between gap-6 pb-6 sm:pb-8">
             <div className="flex items-center gap-2.5">
-              {slides.map((product, i) => (
+              {(isImageMode ? imageSlides : categorySlides).map((slide, i) => (
                 <button
-                  key={product.id}
+                  key={slide.id}
                   type="button"
                   onClick={() => goTo(i)}
-                  aria-label={`Go to slide ${i + 1}: ${product.title}`}
+                  aria-label={isImageMode ? `Go to slide ${i + 1}` : `Go to slide ${i + 1}: ${(slide as Product).title}`}
                   aria-current={i === index}
                   className="group relative h-[3px] w-9 overflow-hidden rounded-full bg-ivory/25 transition-colors hover:bg-ivory/45 sm:w-14"
                 >
