@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Check, Plus, Trash2 } from "lucide-react";
 import { getSiteContent, updateSiteContent, getProductCategories } from "@/lib/data/repository";
 import type { ProductCategory } from "@/lib/data/types";
 import {
@@ -76,29 +76,43 @@ function Field({ label, value, onChange, multiline = false, rows = 3 }: {
   );
 }
 
-function SelectField({ label, hint, value, onChange, options }: {
+/** Toggle-pill multi-select — same visual pattern as ProductEditor's own category picker. */
+function CategoryToggleField({ label, hint, categories, selected, onChange }: {
   label: string;
   hint?: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
+  categories: ProductCategory[];
+  selected: string[];
+  onChange: (slugs: string[]) => void;
 }) {
+  function toggle(slug: string) {
+    onChange(selected.includes(slug) ? selected.filter((s) => s !== slug) : [...selected, slug]);
+  }
+
   return (
     <div>
-      <label className="mb-1.5 block font-sans text-xs uppercase tracking-wide text-admin-muted">
+      <label className="mb-2 block font-sans text-xs uppercase tracking-wide text-admin-muted">
         {label} {hint && <span className="normal-case text-admin-muted/70">— {hint}</span>}
       </label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-admin-border bg-admin-surface px-4 py-2.5 font-sans text-sm focus:border-olive focus:outline-none"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      <div className="flex flex-wrap gap-2">
+        {categories.map((c) => {
+          const isSelected = selected.includes(c.slug);
+          return (
+            <button
+              key={c.id}
+              type="button"
+              aria-pressed={isSelected}
+              onClick={() => toggle(c.slug)}
+              className={`flex items-center gap-1.5 border px-3 py-1.5 font-sans text-xs transition-colors ${
+                isSelected ? "border-charcoal bg-charcoal text-ivory" : "border-admin-border text-admin-ink hover:border-charcoal"
+              }`}
+            >
+              {isSelected && <Check size={12} strokeWidth={2} />}
+              {c.name}
+            </button>
+          );
+        })}
+        {categories.length === 0 && <p className="font-sans text-xs text-admin-muted">No categories yet — add some under Categories in the sidebar.</p>}
+      </div>
     </div>
   );
 }
@@ -154,15 +168,12 @@ function HeroSection() {
 
   return (
     <Panel title="Hero" hint="The first screen on the Home page." onSave={save} saving={saving} saved={saved}>
-      <SelectField
-        label="Animated slider category"
-        hint="pulls up to 4 products from this category into a Slider-Revolution-style animated banner, replacing the video below. Leave as “None” to keep the static video hero."
-        value={value.categorySlug}
-        onChange={(v) => setValue({ ...value, categorySlug: v })}
-        options={[
-          { value: "", label: "None — use the static video hero" },
-          ...categories.map((c) => ({ value: c.slug, label: c.name })),
-        ]}
+      <CategoryToggleField
+        label="Animated slider categories"
+        hint="pulls up to 4 products from these categories into a Slider-Revolution-style animated banner, replacing the video below. Leave none selected to keep the static video hero."
+        categories={categories}
+        selected={value.categorySlugs}
+        onChange={(slugs) => setValue({ ...value, categorySlugs: slugs })}
       />
       <Field label="Eyebrow" value={value.eyebrow} onChange={(v) => setValue({ ...value, eyebrow: v })} />
       <LinesField label="Headline" lines={value.headlineLines} onChange={(lines) => setValue({ ...value, headlineLines: lines })} />

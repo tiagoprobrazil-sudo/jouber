@@ -20,17 +20,17 @@ const AUTOPLAY_MS = 6500;
 const SWIPE_THRESHOLD_PX = 40;
 
 /**
- * An animated, Slider-Revolution-style banner built from a single
- * product category, chosen in /admin/content (Hero panel) — up to 4
+ * An animated, Slider-Revolution-style banner pooled from one or more
+ * product categories, chosen in /admin/content (Hero panel) — up to 4
  * slides, each a product's cover photo, title and price. Whichever
- * category the admin picks is swapped in automatically the moment it
- * has at least one product (see getProducts' default sort: featured
- * first), so adding or re-featuring a piece takes its place here with
- * no code change. Until a category is chosen (or it has no products
- * yet), a static still + the CMS copy from /admin/content is shown
- * instead — never a blank or half-loaded hero. (The atelier footage
- * that used to autoplay here now lives in the "Atelier" section,
- * Intro.tsx.)
+ * categories the admin picks are swapped in automatically the moment
+ * they have at least one product between them (see getProducts'
+ * default sort: featured first), so adding or re-featuring a piece
+ * takes its place here with no code change. Until at least one
+ * category is chosen (or none of them has products yet), a static
+ * still + the CMS copy from /admin/content is shown instead — never a
+ * blank or half-loaded hero. (The atelier footage that used to
+ * autoplay here now lives in the "Atelier" section, Intro.tsx.)
  */
 export function Hero() {
   const content = useSiteContent("hero");
@@ -46,26 +46,41 @@ export function Hero() {
     getProductCategories().then((cats) => setCategoryNames(new Map(cats.map((c) => [c.slug, c.name]))));
   }, []);
 
+  const categorySlugsKey = content.categorySlugs.join(",");
+
   useEffect(() => {
-    if (!content.categorySlug) {
+    if (!categorySlugsKey) {
       setProducts(null);
       return;
     }
     let cancelled = false;
-    getProducts({ categorySlug: content.categorySlug }).then((list) => {
-      if (!cancelled) {
-        setProducts(list.slice(0, 4));
-        setIndex(0);
+    // One request per selected category, pooled and de-duplicated (a
+    // product filed under two of the chosen categories only shows up
+    // once) — a product's own default sort (featured first) decides
+    // its place within its category's slice of the pool.
+    Promise.all(categorySlugsKey.split(",").map((slug) => getProducts({ categorySlug: slug }))).then((lists) => {
+      if (cancelled) return;
+      const seen = new Set<string>();
+      const merged: Product[] = [];
+      for (const list of lists) {
+        for (const product of list) {
+          if (!seen.has(product.id)) {
+            seen.add(product.id);
+            merged.push(product);
+          }
+        }
       }
+      setProducts(merged.slice(0, 4));
+      setIndex(0);
     });
     return () => {
       cancelled = true;
     };
-  }, [content.categorySlug]);
+  }, [categorySlugsKey]);
 
   const slides = products ?? [];
   const slideCount = slides.length;
-  const isDynamic = Boolean(content.categorySlug) && slideCount > 0;
+  const isDynamic = Boolean(categorySlugsKey) && slideCount > 0;
 
   // Auto-advance — restarts (and re-syncs the progress bar, keyed on
   // `index` too) every time the slide changes, whether by this timer, an
@@ -99,8 +114,11 @@ export function Hero() {
   }
 
   const activeProduct = isDynamic ? slides[index] : null;
-  const activeCategoryName = content.categorySlug ? categoryNames.get(content.categorySlug) : undefined;
-  const activeHref = content.categorySlug ? `/shop/${content.categorySlug}` : "/shop";
+  // A product may belong to several categories — show whichever of its
+  // own categories was actually picked for the slider, not just its first.
+  const activeCategorySlug = activeProduct?.categorySlugs.find((slug) => content.categorySlugs.includes(slug));
+  const activeCategoryName = activeCategorySlug ? categoryNames.get(activeCategorySlug) : undefined;
+  const activeHref = activeCategorySlug ? `/shop/${activeCategorySlug}` : "/shop";
 
   return (
     <section
