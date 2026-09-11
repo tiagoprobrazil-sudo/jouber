@@ -8,7 +8,7 @@
 // checked below before insert).
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
-import { getPrintfulConfig, printfulFetch, type PrintfulEnvelope, type PrintfulOrder } from "./printful.ts";
+import { getPrintfulConfig, printfulFetch, toPrintfulExternalId, type PrintfulEnvelope, type PrintfulOrder } from "./printful.ts";
 
 interface OrderItemInput {
   productSlug: string;
@@ -73,7 +73,7 @@ async function submitToPrintful(
     const createRes = await printfulFetch(config, "/orders", {
       method: "POST",
       body: JSON.stringify({
-        external_id: orderId,
+        external_id: toPrintfulExternalId(orderId),
         recipient: {
           name: address.name || "Customer",
           address1: address.street1 ?? "",

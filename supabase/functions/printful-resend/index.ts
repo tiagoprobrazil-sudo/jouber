@@ -17,7 +17,7 @@
 // Response:      { printfulOrderId: number } | { error: string }
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { getPrintfulConfig, printfulFetch, type PrintfulEnvelope, type PrintfulOrder } from "../_shared/printful.ts";
+import { getPrintfulConfig, printfulFetch, toPrintfulExternalId, type PrintfulEnvelope, type PrintfulOrder } from "../_shared/printful.ts";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
   const createRes = await printfulFetch(printful, "/orders", {
     method: "POST",
     body: JSON.stringify({
-      external_id: order.id,
+      external_id: toPrintfulExternalId(order.id),
       recipient: {
         name: address.name || "Customer",
         address1: address.street1 ?? "",

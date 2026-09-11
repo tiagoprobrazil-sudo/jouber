@@ -19,6 +19,21 @@ export interface PrintfulConfig {
   storeId?: string;
 }
 
+/**
+ * Printful's `external_id` on an order is capped at 32 characters (digits,
+ * Latin letters, dashes, underscores) — a standard hyphenated UUID is 36
+ * characters and gets rejected outright with "Invalid External ID
+ * specified" (confirmed live 2026-09-11, order #16d1d5ea). Stripping the
+ * hyphens turns Jouber's uuid order id into exactly 32 hex characters,
+ * still unique, still traceable back to the order — every place that reads
+ * a Printful order back (printful-webhook, printful-cancel-order) does so
+ * via the numeric `printful_order_id` column, never by parsing external_id,
+ * so this is safe to change without touching anything downstream.
+ */
+export function toPrintfulExternalId(orderId: string): string {
+  return orderId.replace(/-/g, "");
+}
+
 export function getPrintfulConfig(): PrintfulConfig | null {
   const token = Deno.env.get("PRINTFUL_API_TOKEN");
   if (!token) return null;
