@@ -1,5 +1,30 @@
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { ShippingAddress } from "@/lib/shipping/types";
+
+/**
+ * supabase-js's `functions.invoke` throws a generic FunctionsHttpError
+ * ("Edge Function returned a non-2xx status code") on any non-2xx response —
+ * it never reads the response body, even though every printful-* function
+ * replies with a specific `{ error, detail? }` JSON body. Without unwrapping
+ * it here, the admin UI can only ever show that one generic sentence, and
+ * the real reason (missing PRINTFUL_API_TOKEN, product not linked to
+ * Printful, Printful itself rejecting the address, etc.) is invisible
+ * outside the function's own logs — which is exactly what happened with the
+ * "RESEND TO PRINTFUL" failures in /admin/orders.
+ */
+async function describeFunctionError(error: unknown, fallback: string): Promise<Error> {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const body = await error.context.clone().json();
+      const message = [body?.error, body?.detail].filter(Boolean).join(" — ");
+      if (message) return new Error(message);
+    } catch {
+      // Body wasn't JSON — fall through to the generic message below.
+    }
+  }
+  return error instanceof Error ? error : new Error(fallback);
+}
 
 export interface PrintfulCatalogProduct {
   id: number;
@@ -18,7 +43,7 @@ export async function listPrintfulProducts(): Promise<PrintfulCatalogProduct[]> 
   const { data, error } = await supabase!.functions.invoke<{ products: PrintfulCatalogProduct[] }>("printful-catalog", {
     method: "GET",
   });
-  if (error || !data) throw error ?? new Error("Could not load the Printful catalog.");
+  if (error || !data) throw await describeFunctionError(error, "Could not load the Printful catalog.");
   return data.products;
 }
 
@@ -27,7 +52,7 @@ export async function importPrintfulProduct(printfulProductId: number): Promise<
   const { data, error } = await supabase!.functions.invoke<{ productId: string; slug: string }>("printful-catalog", {
     body: { printfulProductId },
   });
-  if (error || !data) throw error ?? new Error("Could not import this product.");
+  if (error || !data) throw await describeFunctionError(error, "Could not import this product.");
   return data;
 }
 
@@ -42,7 +67,7 @@ export async function getPrintfulShippingCost(items: PrintfulShippingItem[], add
   const { data, error } = await supabase!.functions.invoke<{ amount: number }>("printful-shipping", {
     body: { items, address },
   });
-  if (error || !data) throw error ?? new Error("Could not get a Printful shipping quote.");
+  if (error || !data) throw await describeFunctionError(error, "Could not get a Printful shipping quote.");
   return data.amount;
 }
 
@@ -51,7 +76,7 @@ export async function resendOrderToPrintful(orderId: string): Promise<number> {
   const { data, error } = await supabase!.functions.invoke<{ printfulOrderId: number }>("printful-resend", {
     body: { orderId },
   });
-  if (error || !data) throw error ?? new Error("Could not resend this order to Printful.");
+  if (error || !data) throw await describeFunctionError(error, "Could not resend this order to Printful.");
   return data.printfulOrderId;
 }
 
@@ -60,7 +85,7 @@ export async function cancelPrintfulOrder(orderId: string): Promise<void> {
   const { data, error } = await supabase!.functions.invoke<{ ok: true }>("printful-cancel-order", {
     body: { orderId },
   });
-  if (error || !data?.ok) throw error ?? new Error("Could not cancel this order.");
+  if (error || !data?.ok) throw await describeFunctionError(error, "Could not cancel this order.");
 }
 
 export interface PrintfulOrderSummary {
@@ -78,6 +103,6 @@ export async function listPrintfulOrders(): Promise<PrintfulOrderSummary[]> {
   const { data, error } = await supabase!.functions.invoke<{ orders: PrintfulOrderSummary[] }>("printful-orders", {
     method: "GET",
   });
-  if (error || !data) throw error ?? new Error("Could not load Printful orders.");
+  if (error || !data) throw await describeFunctionError(error, "Could not load Printful orders.");
   return data.orders;
 }
