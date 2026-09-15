@@ -10,6 +10,7 @@ import { BrandMark } from "@/components/brand/BrandMark";
 const NAV_ITEMS = [
   { label: "Home", to: "/" },
   { label: "Shop", to: "/shop" },
+  { label: "Commissions", to: "/commissions" },
   { label: "The Artist", to: "/artist" },
   { label: "Journal", to: "/journal" },
   { label: "Contact", to: "/contact" },

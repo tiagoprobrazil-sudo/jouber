@@ -8,6 +8,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 
 const Home = lazy(() => import("@/pages/Home"));
 const Shop = lazy(() => import("@/pages/Shop"));
+const Commission = lazy(() => import("@/pages/Commission"));
 const ProductDetail = lazy(() => import("@/pages/ProductDetail"));
 const Artist = lazy(() => import("@/pages/Artist"));
 const Journal = lazy(() => import("@/pages/Journal"));
@@ -27,6 +28,7 @@ const AdminProducts = lazy(() => import("@/pages/admin/Products"));
 const AdminProductEditor = lazy(() => import("@/pages/admin/ProductEditor"));
 const AdminMedia = lazy(() => import("@/pages/admin/Media"));
 const AdminOrders = lazy(() => import("@/pages/admin/Orders"));
+const AdminCommissions = lazy(() => import("@/pages/admin/Commissions"));
 const AdminCoupons = lazy(() => import("@/pages/admin/Coupons"));
 const AdminCouponEditor = lazy(() => import("@/pages/admin/CouponEditor"));
 const AdminCategories = lazy(() => import("@/pages/admin/Categories"));
@@ -45,6 +47,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/shop/:category" element={<Shop />} />
+            <Route path="/commissions" element={<Commission />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/artist" element={<Artist />} />
             <Route path="/journal" element={<Journal />} />
@@ -78,6 +81,7 @@ export default function App() {
             <Route path="products/:id" element={<AdminProductEditor />} />
             <Route path="media" element={<AdminMedia />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="commissions" element={<AdminCommissions />} />
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="coupons/new" element={<AdminCouponEditor />} />
             <Route path="coupons/:id" element={<AdminCouponEditor />} />

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils/cn";
 const NAV_ITEMS = [
   { label: "Home", to: "/" },
   { label: "Shop", to: "/shop" },
+  { label: "Commissions", to: "/commissions" },
   { label: "The Artist", to: "/artist" },
   { label: "Journal", to: "/journal" },
   { label: "Contact", to: "/contact" },
@@ -37,15 +38,15 @@ export function Header() {
       <header
         data-header-state={overlay ? "overlay" : "solid"}
         className={cn(
-          "fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+          "fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,box-shadow,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
           overlay
-            ? "border-b border-transparent bg-transparent py-5 sm:py-6 lg:py-7"
-            : "border-b border-stone-dark/60 bg-ivory/95 py-3 backdrop-blur-[6px]",
+            ? "border-b border-white/10 bg-charcoal/10 py-4 backdrop-blur-[2px] sm:py-5"
+            : "border-b border-stone-dark/50 bg-ivory/90 py-3 shadow-[0_8px_30px_rgba(28,27,25,0.045)] backdrop-blur-xl",
         )}
       >
         {overlay && (
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-36 bg-gradient-to-b from-charcoal/50 via-charcoal/15 to-transparent"
+            className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-28 bg-gradient-to-b from-charcoal/55 via-charcoal/20 to-transparent"
             aria-hidden="true"
           />
         )}
@@ -68,7 +69,7 @@ export function Header() {
                 end={item.to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "link-underline whitespace-nowrap font-sans text-[11px] font-medium uppercase tracking-[0.16em] transition-colors duration-300",
+                    "nav-link whitespace-nowrap font-sans text-[10px] font-medium uppercase tracking-[0.2em] transition-colors duration-300",
                     overlay ? "text-ivory" : "text-charcoal",
                     isActive && (overlay ? "text-gold-soft" : "text-olive"),
                   )
@@ -84,14 +85,14 @@ export function Header() {
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
-              className={cn("hidden p-1 transition-colors duration-300 sm:block", toolColor)}
+              className={cn("hidden rounded-full p-2 transition-[background-color,color] duration-300 hover:bg-white/10 sm:block", toolColor)}
             >
               <SearchIcon size={18} strokeWidth={1.5} />
             </button>
             <NavLink
               to="/admin/login"
               aria-label="Account"
-              className={cn("hidden p-1 transition-colors duration-300 sm:block", toolColor)}
+              className={cn("hidden rounded-full p-2 transition-[background-color,color] duration-300 hover:bg-white/10 sm:block", toolColor)}
             >
               <User size={18} strokeWidth={1.5} />
             </NavLink>
@@ -99,7 +100,7 @@ export function Header() {
               type="button"
               onClick={openDrawer}
               aria-label={`Cart, ${itemCount} item${itemCount === 1 ? "" : "s"}`}
-              className={cn("relative p-1 transition-colors duration-300", toolColor)}
+              className={cn("relative rounded-full p-2 transition-[background-color,color] duration-300 hover:bg-white/10", toolColor)}
             >
               <ShoppingBag size={18} strokeWidth={1.5} />
               {itemCount > 0 && (
@@ -112,7 +113,7 @@ export function Header() {
               type="button"
               onClick={() => setMobileOpen(true)}
               aria-label="Open menu"
-              className={cn("p-1 transition-colors duration-300 lg:hidden", toolColor)}
+              className={cn("rounded-full p-2 transition-[background-color,color] duration-300 hover:bg-white/10 lg:hidden", toolColor)}
             >
               <Menu size={21} strokeWidth={1.5} />
             </button>
