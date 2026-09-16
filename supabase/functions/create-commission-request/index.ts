@@ -45,6 +45,8 @@ interface RequestBody {
     phone?: string;
   };
   message?: string;
+  quotedServicePrice?: number;
+  quotedTotalPrice?: number;
 }
 
 function escapeHtml(value: string): string {
@@ -98,6 +100,8 @@ Deno.serve(async (req) => {
       customer_email: customer.email.trim(),
       customer_phone: customer.phone?.trim() || null,
       message: body.message?.trim() || null,
+      quoted_service_price: body.quotedServicePrice ?? null,
+      quoted_total_price: body.quotedTotalPrice ?? null,
     })
     .select("id")
     .single();
@@ -112,7 +116,12 @@ Deno.serve(async (req) => {
     const html = `
       <h2>New commission request</h2>
       <p><strong>${escapeHtml(product.nome)}</strong> (${escapeHtml(product.categoria ?? "Uncategorized")})</p>
-      ${product.preco ? `<p>Reference price on source site: R$ ${Number(product.preco).toFixed(2)}</p>` : ""}
+      ${
+        body.quotedTotalPrice
+          ? `<p>Quoted to customer: R$ ${body.quotedTotalPrice.toFixed(2)} (labor R$ ${(body.quotedServicePrice ?? 0).toFixed(2)} + file R$ ${(product.preco ?? 0).toFixed(2)})</p>`
+          : ""
+      }
+      ${product.preco ? `<p>File reference price on source site: R$ ${Number(product.preco).toFixed(2)}</p>` : ""}
       <p><a href="${escapeHtml(product.link_produto)}">View / buy the STL on the source site</a></p>
       <hr />
       <p><strong>Customer:</strong> ${escapeHtml(customer.name)}</p>

@@ -17,6 +17,8 @@ export interface CommissionRequestRow {
   customer_phone: string | null;
   message: string | null;
   admin_notes: string | null;
+  quoted_service_price: number | null;
+  quoted_total_price: number | null;
 }
 
 export async function listCommissionRequests(): Promise<CommissionRequestRow[]> {

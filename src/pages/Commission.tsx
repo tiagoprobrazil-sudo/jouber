@@ -5,12 +5,15 @@ import { SectionNumber } from "@/components/ui/SectionNumber";
 import { CommissionCard } from "@/components/commissions/CommissionCard";
 import { CommissionRequestModal } from "@/components/commissions/CommissionRequestModal";
 import { getCommissionCatalog } from "@/lib/commissions/catalog";
+import { getCommissionPricing, servicePriceFor, type CommissionPricing } from "@/lib/commissions/pricing";
 import type { CatalogItem } from "@/lib/commissions/types";
 
 const PAGE_SIZE = 24;
+const EMPTY_PRICING: CommissionPricing = { defaultServicePrice: null, overrides: {} };
 
 export default function Commission() {
   const [items, setItems] = useState<CatalogItem[] | null>(null);
+  const [pricing, setPricing] = useState<CommissionPricing>(EMPTY_PRICING);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -18,6 +21,7 @@ export default function Commission() {
   const [selected, setSelected] = useState<CatalogItem | null>(null);
 
   useEffect(() => {
+    getCommissionPricing().then(setPricing);
     getCommissionCatalog({ page: 1, pageSize: PAGE_SIZE })
       .then((data) => {
         setItems(data.items);
@@ -25,6 +29,11 @@ export default function Commission() {
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Could not load the catalog."));
   }, []);
+
+  function totalPriceFor(item: CatalogItem): number | null {
+    const servicePrice = servicePriceFor(pricing, item.id);
+    return servicePrice === null ? null : servicePrice + item.preco;
+  }
 
   async function loadMore() {
     setLoadingMore(true);
@@ -73,7 +82,12 @@ export default function Commission() {
             <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-14 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 lg:gap-x-8">
               {items
                 ? items.map((item) => (
-                    <CommissionCard key={item.id} item={item} onCommission={setSelected} />
+                    <CommissionCard
+                      key={item.id}
+                      item={item}
+                      totalPrice={totalPriceFor(item)}
+                      onCommission={setSelected}
+                    />
                   ))
                 : Array.from({ length: 8 }).map((_, i) => (
                     <div key={i} className="aspect-[4/5] animate-pulse rounded-sm bg-stone" />
@@ -102,7 +116,11 @@ export default function Commission() {
         )}
       </div>
 
-      <CommissionRequestModal item={selected} onClose={() => setSelected(null)} />
+      <CommissionRequestModal
+        item={selected}
+        servicePrice={selected ? servicePriceFor(pricing, selected.id) : null}
+        onClose={() => setSelected(null)}
+      />
     </>
   );
 }

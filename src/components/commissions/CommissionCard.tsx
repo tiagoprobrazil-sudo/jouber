@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/Button";
 
 interface CommissionCardProps {
   item: CatalogItem;
+  /** Total price (atelier labor + source file), or null if the admin hasn't
+   * set a labor price yet — the raw file price alone is never shown here,
+   * since the customer is commissioning a finished piece, not the file. */
+  totalPrice: number | null;
   onCommission: (item: CatalogItem) => void;
 }
 
@@ -11,7 +15,7 @@ interface CommissionCardProps {
  * intentionally its own component: these aren't the atelier's own products
  * (no internal slug/cart), they're sourced from a partner's feed and the
  * only action is opening the commission-request form. */
-export function CommissionCard({ item, onCommission }: CommissionCardProps) {
+export function CommissionCard({ item, totalPrice, onCommission }: CommissionCardProps) {
   return (
     <div className="group">
       <div className="relative aspect-[4/5] overflow-hidden rounded-sm bg-stone">
@@ -31,7 +35,9 @@ export function CommissionCard({ item, onCommission }: CommissionCardProps) {
           </p>
           <p className="truncate font-serif text-[1.05rem] leading-snug text-charcoal">{item.nome}</p>
         </div>
-        <span className="shrink-0 pt-[1.55rem] font-sans text-sm text-charcoal">{formatBRL(item.preco)}</span>
+        {totalPrice !== null && (
+          <span className="shrink-0 pt-[1.55rem] font-sans text-sm text-charcoal">{formatBRL(totalPrice)}</span>
+        )}
       </div>
 
       {item.descricao_curta && (

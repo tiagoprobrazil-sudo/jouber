@@ -34,6 +34,11 @@ export interface CommissionRequestInput {
     phone?: string;
   };
   message?: string;
+  /** What the customer was actually shown at request time (labor + file
+   * price) — kept separate from live pricing so past requests stay
+   * accurate even if the admin changes prices later. */
+  quotedServicePrice?: number;
+  quotedTotalPrice?: number;
 }
 
 export interface CommissionRequestResult {

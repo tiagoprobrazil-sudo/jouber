@@ -9,13 +9,17 @@ import type { CatalogItem, CommissionRequestResult } from "@/lib/commissions/typ
 
 interface CommissionRequestModalProps {
   item: CatalogItem | null;
+  /** Admin's labor price for this piece, or null if not set yet (total
+   * hasn't been priced — the raw file price alone is never shown). */
+  servicePrice: number | null;
   onClose: () => void;
 }
 
 type Status = "form" | "submitting" | "done" | "error";
 
-export function CommissionRequestModal({ item, onClose }: CommissionRequestModalProps) {
+export function CommissionRequestModal({ item, servicePrice, onClose }: CommissionRequestModalProps) {
   const isOpen = item !== null;
+  const totalPrice = item && servicePrice !== null ? servicePrice + item.preco : null;
   useLockBodyScroll(isOpen);
   const dialogRef = useRef<HTMLElement>(null);
   useDialogFocus(isOpen, dialogRef, onClose);
@@ -55,6 +59,8 @@ export function CommissionRequestModal({ item, onClose }: CommissionRequestModal
         product: item,
         customer: { name, email, phone: phone || undefined },
         message: message || undefined,
+        quotedServicePrice: servicePrice ?? undefined,
+        quotedTotalPrice: totalPrice ?? undefined,
       });
       setResult(res);
       setStatus("done");
@@ -98,7 +104,13 @@ export function CommissionRequestModal({ item, onClose }: CommissionRequestModal
               Commission Request
             </p>
             <h2 className="font-serif text-xl text-charcoal">{item.nome}</h2>
-            <p className="mt-1 font-sans text-sm text-warmgray">{formatBRL(item.preco)} · reference price on source site</p>
+            {totalPrice !== null ? (
+              <p className="mt-1 font-sans text-sm text-warmgray">
+                {formatBRL(totalPrice)} · hand-printed piece, file included
+              </p>
+            ) : (
+              <p className="mt-1 font-sans text-sm text-warmgray">Price to be confirmed</p>
+            )}
 
             <p className="mt-4 font-sans text-[13px] leading-relaxed text-warmgray-dark">
               I'll hand-print and finish this design for you. The digital STL file itself is sold separately by
