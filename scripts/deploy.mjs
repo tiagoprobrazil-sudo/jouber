@@ -1,3 +1,11 @@
+// NOTE (2026-09-15): this uploads to a staging/preview path
+// (artbit.com.br/<FTP_REMOTE_DIR>, an old addon-domain leftover) — it does
+// NOT touch the real production site. ateliersaintsebastian.com is served
+// by Cloudflare Pages/Workers, connected to this repo's GitHub remote;
+// production deploys happen via `git push origin master`, not this script.
+// Kept around only for previewing a build before pushing, if that's ever
+// useful. See README.md > Deployment for details.
+
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,6 +36,13 @@ async function loadDeployConfig() {
 }
 
 async function deploy() {
+  console.warn(
+    "\n[deploy.mjs] Heads up: this uploads to a STAGING path, not the live site.\n" +
+      "ateliersaintsebastian.com is deployed via Cloudflare Pages from GitHub —\n" +
+      "use `git push origin master` for a real production deploy.\n" +
+      "See README.md > Deployment.\n",
+  );
+
   const config = await loadDeployConfig();
   await fs.access(path.join(distDir, "index.html"));
 
