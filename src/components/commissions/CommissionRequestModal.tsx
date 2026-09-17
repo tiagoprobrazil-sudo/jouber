@@ -117,6 +117,10 @@ export function CommissionRequestModal({ item, servicePrice, onClose }: Commissi
               its original creator — once we confirm your commission, you'll get a direct link to purchase it there.
             </p>
 
+            <p className="mt-3 font-sans text-[11px] leading-relaxed text-warmgray-dark">
+              As imagens são meramente ilustrativas, servem apenas para visualização e não refletem exatamente como será a pintura.
+            </p>
+
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
                 <label htmlFor="commission-name" className="mb-1.5 block font-sans text-[11px] uppercase tracking-wide text-warmgray">
