@@ -23,6 +23,7 @@ const EMPTY: Omit<Product, "id" | "createdAt"> = {
   active: true,
   featured: false,
   customizable: false,
+  quoteOnly: false,
 };
 
 function TextField({
@@ -209,6 +210,23 @@ export default function ProductEditor() {
           />
           <TextField label="Stock" type="number" value={form.stock} onChange={(v) => update("stock", Number(v))} />
           <TextField label="Weight" value={form.weight ?? ""} onChange={(v) => update("weight", v)} />
+        </div>
+
+        <div className="border border-admin-border bg-admin-surface p-4">
+          <label className="flex items-center gap-2.5 font-sans text-sm text-admin-ink">
+            <input
+              type="checkbox"
+              checked={form.quoteOnly ?? false}
+              onChange={(e) => update("quoteOnly", e.target.checked)}
+              className="h-4 w-4 accent-olive"
+            />
+            Quote only (price on request)
+          </label>
+          <p className="mt-2 font-sans text-xs text-admin-muted">
+            {form.quoteOnly
+              ? "The product page hides the price, variants and Add to Cart, and shows a “Request a Quote” form instead. The price field above is not shown to customers but is still required by the database — any placeholder value is fine."
+              : "Off by default — the product page shows the normal price and Add to Cart."}
+          </p>
         </div>
 
         <div>

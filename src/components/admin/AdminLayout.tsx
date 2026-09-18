@@ -13,6 +13,7 @@ import {
   FileText,
   Star,
   Shirt,
+  BookOpen,
   Settings as SettingsIcon,
   LogOut,
   ExternalLink,
@@ -36,6 +37,7 @@ const NAV = [
   { label: "Customers", to: "/admin/orders", icon: Users },
   { label: "Site Content", to: "/admin/content", icon: FileText },
   { label: "Printful", to: "/admin/printful", icon: Shirt },
+  { label: "Documentation", to: "/admin/docs", icon: BookOpen },
   { label: "Settings", to: "/admin/settings", icon: SettingsIcon },
 ];
 

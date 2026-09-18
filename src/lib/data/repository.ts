@@ -174,6 +174,7 @@ interface ProductRow {
   active: boolean;
   featured: boolean;
   customizable: boolean;
+  quote_only: boolean;
   created_at: string;
   product_images: { id: string; url: string; alt: string; position: number }[];
   product_variants: {
@@ -235,6 +236,7 @@ function mapProductRow(row: ProductRow, rating?: { rating: number; count: number
     active: row.active,
     featured: row.featured,
     customizable: row.customizable,
+    quoteOnly: row.quote_only,
     rating: rating?.rating,
     reviewCount: rating?.count,
     createdAt: row.created_at,
@@ -465,6 +467,7 @@ function productColumns(data: Partial<Omit<Product, "id" | "createdAt">>) {
     ...(data.active !== undefined && { active: data.active }),
     ...(data.featured !== undefined && { featured: data.featured }),
     ...(data.customizable !== undefined && { customizable: data.customizable }),
+    ...(data.quoteOnly !== undefined && { quote_only: data.quoteOnly }),
   };
 }
 

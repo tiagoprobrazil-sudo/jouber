@@ -12,7 +12,7 @@ import { usePrefersReducedMotion } from "@/lib/hooks/usePrefersReducedMotion";
 import { optimizedImageUrl, optimizedImageSrcSet } from "@/lib/utils/imageUrl";
 import { formatPrice } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
-import frameTop from "@/assets/brand/ornaments/frame-top.webp";
+import frameTop from "@/assets/brand/ornaments-restored/frame-top.webp";
 import heroVideoPoster from "@/assets/videos/hero-devotion-poster.webp";
 
 /** How long each slide holds before auto-advancing — also drives the progress-bar fill and (roughly) the Ken Burns zoom, see index.css's .hero-slider__* rules. */

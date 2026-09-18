@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils/cn";
-import frameLower from "@/assets/brand/ornaments/frame-lower.webp";
-import frameSide from "@/assets/brand/ornaments/frame-side.webp";
-import frameTop from "@/assets/brand/ornaments/frame-top.webp";
+import frameLower from "@/assets/brand/ornaments-restored/frame-lower.webp";
+import frameSide from "@/assets/brand/ornaments-restored/frame-side.webp";
+import frameTop from "@/assets/brand/ornaments-restored/frame-top.webp";
 import paperInk from "@/assets/brand/textures/paper-ink.webp";
 
 type EngravingBackgroundVariant = "frame-lower" | "frame-side" | "frame-top" | "paper";

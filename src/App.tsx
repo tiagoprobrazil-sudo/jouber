@@ -35,6 +35,7 @@ const AdminCategories = lazy(() => import("@/pages/admin/Categories"));
 const AdminContent = lazy(() => import("@/pages/admin/Content"));
 const AdminPrintful = lazy(() => import("@/pages/admin/Printful"));
 const AdminReviews = lazy(() => import("@/pages/admin/Reviews"));
+const AdminDocs = lazy(() => import("@/pages/admin/Docs"));
 const AdminSettings = lazy(() => import("@/pages/admin/Settings"));
 
 export default function App() {
@@ -89,6 +90,7 @@ export default function App() {
             <Route path="content" element={<AdminContent />} />
             <Route path="printful" element={<AdminPrintful />} />
             <Route path="reviews" element={<AdminReviews />} />
+            <Route path="docs" element={<AdminDocs />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 

@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/ui/PageContainer";
 import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
 import { editorialImages } from "@/lib/data/mock/images";
 import { useSiteContent } from "@/lib/data/siteContent";
-import frameSide from "@/assets/brand/ornaments/frame-side.webp";
+import frameSide from "@/assets/brand/ornaments-restored/frame-side.webp";
 
 export function EditorialFeature() {
   const content = useSiteContent("editorialFeature");

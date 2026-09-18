@@ -77,7 +77,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-charcoal/45 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         />
         <span className="pointer-events-none absolute bottom-3.5 left-3.5 hidden translate-y-2 items-center gap-1.5 rounded-sm font-sans text-[10px] font-medium uppercase tracking-[0.14em] text-ivory opacity-0 transition-[opacity,transform] duration-300 group-hover:translate-y-0 group-hover:opacity-100 lg:inline-flex">
-          View Piece
+          {product.quoteOnly ? "View & Request Quote" : "View Piece"}
           <ArrowUpRight aria-hidden="true" size={12} strokeWidth={1.5} />
         </span>
 
@@ -95,7 +95,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
           </p>
           <p className="truncate font-serif text-[1.05rem] leading-snug text-charcoal">{product.title}</p>
         </div>
-        <Price price={product.price} compareAtPrice={product.compareAtPrice} className="shrink-0 pt-[1.55rem]" />
+        {product.quoteOnly ? (
+          <span className="shrink-0 pt-[1.55rem] font-sans text-sm text-warmgray">Price upon request</span>
+        ) : (
+          <Price price={product.price} compareAtPrice={product.compareAtPrice} className="shrink-0 pt-[1.55rem]" />
+        )}
       </div>
     </Link>
   );

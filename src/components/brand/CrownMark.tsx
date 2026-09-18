@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils/cn";
-import crownCross from "@/assets/brand/ornaments/crown-cross.webp";
+import crownCross from "@/assets/brand/ornaments-restored/crown-cross.webp";
 
 interface CrownMarkProps {
   className?: string;

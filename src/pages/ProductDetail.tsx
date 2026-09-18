@@ -9,6 +9,7 @@ import { SeoHead } from "@/components/layout/SeoHead";
 import { PageLoader } from "@/components/layout/PageLoader";
 import { Gallery } from "@/components/product/Gallery";
 import { VariantPicker } from "@/components/product/VariantPicker";
+import { ProductQuoteModal } from "@/components/product/ProductQuoteModal";
 import { ReviewForm } from "@/components/product/ReviewForm";
 import { Price } from "@/components/ui/Price";
 import { RatingStars } from "@/components/ui/RatingStars";
@@ -26,6 +27,7 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
   const { addItem, openDrawer } = useCart();
 
   useEffect(() => {
@@ -104,11 +106,15 @@ export default function ProductDetail() {
             </div>
           )}
 
-          <Price price={product.price} compareAtPrice={product.compareAtPrice} size="lg" className="mt-5" />
+          {product.quoteOnly ? (
+            <p className="mt-5 font-serif text-xl text-charcoal">Price available upon request</p>
+          ) : (
+            <Price price={product.price} compareAtPrice={product.compareAtPrice} size="lg" className="mt-5" />
+          )}
 
           <p className="mt-6 font-sans text-[15px] leading-relaxed text-warmgray-dark">{product.description}</p>
 
-          {product.customizable && (
+          {product.customizable && !product.quoteOnly && (
             <p className="mt-5 inline-flex items-center gap-2 border border-gold-soft bg-gold-soft/10 px-3 py-2 font-sans text-xs text-olive-dark">
               <Sparkles size={13} strokeWidth={1.5} />
               Customization available — mention your request in the order notes.
@@ -134,14 +140,18 @@ export default function ProductDetail() {
                 <dd className="text-charcoal">{product.finish}</dd>
               </>
             )}
-            <dt className="text-warmgray">Availability</dt>
-            <dd className={product.madeToOrder || product.stock > 0 ? "text-olive" : "text-warmgray"}>
-              {product.madeToOrder
-                ? `Made to order${product.leadTime ? ` — ${product.leadTime}` : ""}`
-                : product.stock > 0
-                  ? "In stock, ships in 3–5 days"
-                  : "Out of stock"}
-            </dd>
+            {!product.quoteOnly && (
+              <>
+                <dt className="text-warmgray">Availability</dt>
+                <dd className={product.madeToOrder || product.stock > 0 ? "text-olive" : "text-warmgray"}>
+                  {product.madeToOrder
+                    ? `Made to order${product.leadTime ? ` — ${product.leadTime}` : ""}`
+                    : product.stock > 0
+                      ? "In stock, ships in 3–5 days"
+                      : "Out of stock"}
+                </dd>
+              </>
+            )}
           </dl>
 
           {product.variants && product.variants.length > 0 && (
@@ -150,32 +160,48 @@ export default function ProductDetail() {
             </div>
           )}
 
-          <div className="mt-8 flex items-center gap-4">
-            <QuantityStepper
-              quantity={quantity}
-              onIncrement={() => setQuantity((q) => q + 1)}
-              onDecrement={() => setQuantity((q) => Math.max(1, q - 1))}
-            />
-            <Button onClick={handleAddToCart} className="flex-1">
-              Add to Cart
-            </Button>
-          </div>
+          {product.quoteOnly ? (
+            <div className="mt-8">
+              <p className="font-sans text-sm leading-relaxed text-warmgray-dark">
+                This piece is individually prepared and hand-finished. Final pricing depends on size, finish,
+                customization and project requirements.
+              </p>
+              <Button onClick={() => setShowQuoteModal(true)} className="mt-5 w-full">
+                Request a Quote
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-8 flex items-center gap-4">
+              <QuantityStepper
+                quantity={quantity}
+                onIncrement={() => setQuantity((q) => q + 1)}
+                onDecrement={() => setQuantity((q) => Math.max(1, q - 1))}
+              />
+              <Button onClick={handleAddToCart} className="flex-1">
+                Add to Cart
+              </Button>
+            </div>
+          )}
 
           <p className="mt-6 font-sans text-xs leading-relaxed text-warmgray">
             Handmade and individually finished. Subtle variations make every piece unique.
           </p>
 
           <div className="mt-8 space-y-4 border-t border-stone-dark pt-6 font-sans text-sm text-warmgray-dark">
-            <p className="flex items-start gap-3">
-              <Truck size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-warmgray" />
-              {product.madeToOrder
-                ? `Ships worldwide. Made to order — please allow ${product.leadTime || "extra time"} before dispatch.`
-                : "Ships worldwide. Production time 3–7 business days before dispatch."}
-            </p>
-            <p className="flex items-start gap-3">
-              <RotateCcw size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-warmgray" />
-              Returns accepted within 14 days for unused, unopened pieces.
-            </p>
+            {!product.quoteOnly && (
+              <>
+                <p className="flex items-start gap-3">
+                  <Truck size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-warmgray" />
+                  {product.madeToOrder
+                    ? `Ships worldwide. Made to order — please allow ${product.leadTime || "extra time"} before dispatch.`
+                    : "Ships worldwide. Production time 3–7 business days before dispatch."}
+                </p>
+                <p className="flex items-start gap-3">
+                  <RotateCcw size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-warmgray" />
+                  Returns accepted within 14 days for unused, unopened pieces.
+                </p>
+              </>
+            )}
             <p className="flex items-start gap-3">
               <Sparkles size={16} strokeWidth={1.5} className="mt-0.5 shrink-0 text-warmgray" />
               Dust gently with a dry, soft cloth. Keep away from direct, prolonged sunlight.
@@ -245,6 +271,13 @@ export default function ProductDetail() {
           </div>
         </section>
       )}
+
+      <ProductQuoteModal
+        product={product.quoteOnly ? product : null}
+        variant={variant}
+        isOpen={showQuoteModal}
+        onClose={() => setShowQuoteModal(false)}
+      />
     </>
   );
 }

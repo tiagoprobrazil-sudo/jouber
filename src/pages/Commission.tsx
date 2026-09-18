@@ -4,6 +4,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionNumber } from "@/components/ui/SectionNumber";
 import { CommissionCard } from "@/components/commissions/CommissionCard";
 import { CommissionRequestModal } from "@/components/commissions/CommissionRequestModal";
+import { CommissionImageLightbox } from "@/components/commissions/CommissionImageLightbox";
 import { getCommissionCatalog } from "@/lib/commissions/catalog";
 import { getCommissionPricing, servicePriceFor, type CommissionPricing } from "@/lib/commissions/pricing";
 import type { CatalogItem } from "@/lib/commissions/types";
@@ -19,6 +20,7 @@ export default function Commission() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<CatalogItem | null>(null);
+  const [previewed, setPreviewed] = useState<CatalogItem | null>(null);
 
   useEffect(() => {
     getCommissionPricing().then(setPricing);
@@ -87,6 +89,7 @@ export default function Commission() {
                       item={item}
                       totalPrice={totalPriceFor(item)}
                       onCommission={setSelected}
+                      onPreview={setPreviewed}
                     />
                   ))
                 : Array.from({ length: 8 }).map((_, i) => (
@@ -121,6 +124,8 @@ export default function Commission() {
         servicePrice={selected ? servicePriceFor(pricing, selected.id) : null}
         onClose={() => setSelected(null)}
       />
+
+      <CommissionImageLightbox item={previewed} onClose={() => setPreviewed(null)} />
     </>
   );
 }

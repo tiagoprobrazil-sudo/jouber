@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils/cn";
-import arrowDiagonal from "@/assets/brand/ornaments/arrow-diagonal.webp";
-import arrowHorizontal from "@/assets/brand/ornaments/arrow-horizontal.webp";
-import arrowVertical from "@/assets/brand/ornaments/arrow-vertical.webp";
+import arrowDiagonal from "@/assets/brand/ornaments-restored/arrow-diagonal.webp";
+import arrowHorizontal from "@/assets/brand/ornaments-restored/arrow-horizontal.webp";
+import arrowVertical from "@/assets/brand/ornaments-restored/arrow-vertical.webp";
 
 type ArrowDirection = "diagonal" | "horizontal" | "vertical";
 

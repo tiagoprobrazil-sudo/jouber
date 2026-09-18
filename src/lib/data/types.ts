@@ -92,6 +92,9 @@ export interface Product {
   active: boolean;
   featured: boolean;
   customizable: boolean;
+  /** When true, the product page hides price/variants/Add to Cart and
+   * shows a "Request a Quote" form instead — see ProductQuoteModal. */
+  quoteOnly?: boolean;
   rating?: number;
   reviewCount?: number;
   createdAt: string;
