@@ -1,5 +1,6 @@
 import type { ProductVariant } from "@/lib/data/types";
 import { cn } from "@/lib/utils/cn";
+import { formatPrice } from "@/lib/utils/format";
 
 interface VariantPickerProps {
   variants: ProductVariant[];
@@ -29,6 +30,12 @@ export function VariantPicker({ variants, selected, onSelect }: VariantPickerPro
             )}
           >
             {v.name}
+            {v.priceModifier ? (
+              <span className="ml-1.5 text-[0.85em] opacity-70">
+                {v.priceModifier > 0 ? "+" : "−"}
+                {formatPrice(Math.abs(v.priceModifier))}
+              </span>
+            ) : null}
           </button>
         ))}
       </div>

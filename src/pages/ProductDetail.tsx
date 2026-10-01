@@ -51,6 +51,12 @@ export default function ProductDetail() {
   if (product === undefined) return <PageLoader />;
   if (product === null) return <Navigate to="/shop" replace />;
 
+  // The selected variant's price modifier is added on top of the base price
+  // (and of the compare-at price, so a sale still reads as the same discount).
+  const priceModifier = variant?.priceModifier ?? 0;
+  const unitPrice = product.price + priceModifier;
+  const compareAtPrice = product.compareAtPrice != null ? product.compareAtPrice + priceModifier : undefined;
+
   function handleAddToCart() {
     if (!product) return;
     addItem(
@@ -58,7 +64,7 @@ export default function ProductDetail() {
         productSlug: product.slug,
         title: product.title,
         image: product.images[0]?.url ?? "",
-        price: product.price,
+        price: unitPrice,
         variant: variant?.name,
         quantity,
         shippingWeightOz: product.shippingWeightOz,
@@ -109,7 +115,7 @@ export default function ProductDetail() {
           {product.quoteOnly ? (
             <p className="mt-5 font-serif text-xl text-charcoal">Price available upon request</p>
           ) : (
-            <Price price={product.price} compareAtPrice={product.compareAtPrice} size="lg" className="mt-5" />
+            <Price price={unitPrice} compareAtPrice={compareAtPrice} size="lg" className="mt-5" />
           )}
 
           <p className="mt-6 font-sans text-[15px] leading-relaxed text-warmgray-dark">{product.description}</p>

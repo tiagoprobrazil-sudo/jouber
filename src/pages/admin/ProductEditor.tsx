@@ -317,7 +317,7 @@ export default function ProductEditor() {
                   <TextField label="Name" value={v.name} onChange={(val) => updateVariant(v.id, { name: val })} />
                   <TextField label="Option label" value={v.optionLabel} onChange={(val) => updateVariant(v.id, { optionLabel: val })} />
                   <TextField
-                    label="Price modifier"
+                    label="Price modifier (+/− base price)"
                     type="number"
                     value={v.priceModifier ?? ""}
                     onChange={(val) => updateVariant(v.id, { priceModifier: val ? Number(val) : undefined })}
